@@ -9,6 +9,8 @@ adversity.dev publishes three integrations for the OGRL application: Okta (`dev.
 
 ## How integrations plug in
 
+For how connections, query sources, and tests fit together, with diagrams and worked examples, see [Live evidence](/docs/live-evidence/).
+
 Integrations follow [RFC 0005](/rfcs/0005-integrations/). A package is a gzipped tar archive holding `manifest.yaml`, one JSON Schema per resource, and the code ([section 3](/rfcs/0005-integrations/#3-integration-packages)). The application runs each operation (`connection.validate`, `collect`, `check`) in a separate process and talks to it over JSON-RPC on stdin and stdout.
 
 | Integration | ID | Version | Auth kinds | Resources | Query sources |

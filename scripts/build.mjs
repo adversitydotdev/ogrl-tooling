@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Marked } from "marked";
+import { renderFigure } from "../src/diagrams.mjs";
 import {
   SPEC_SITE,
   renderDocPage,
@@ -25,6 +26,10 @@ const DOCS = {
   cli: { kicker: "ogrl CLI", tagline: "Lint, format, import, evaluate, diff, and render OSCAL from the command line." },
   "integration-sdk": { kicker: "SDK", tagline: "Write, test, and package integrations that collect vendor snapshots." },
   integrations: { kicker: "Integrations", tagline: "Okta, GitHub, and AWS: setup, resources, and check templates." },
+  "live-evidence": {
+    kicker: "Live evidence",
+    tagline: "How connections, query sources, and tests turn vendor data into control status.",
+  },
 };
 
 function escHtml(str) {
@@ -226,7 +231,10 @@ function loadCollection(kind, outboundLinks, headingIds) {
       },
     });
 
-    const html = marked.parse(bodyMarkdown);
+    // `<!-- figure: <id> -->` places an inline SVG figure from src/diagrams.mjs.
+    const html = marked
+      .parse(bodyMarkdown)
+      .replace(/<!--\s*figure:\s*([a-z0-9-]+)\s*-->/g, (_, id) => renderFigure(id));
     headingIds.set(key, seenIds);
 
     items.push({

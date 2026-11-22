@@ -1420,3 +1420,251 @@ a:hover {
     align-items: flex-start;
   }
 }
+
+/* Figures & Inline SVG Diagrams (from ogrl-rfcs; placed with <!-- figure: id -->) */
+.rfc-figure {
+  margin: 1.65rem 0 1.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.rfc-figure-body {
+  padding: 1.1rem 1rem 0.9rem;
+  overflow-x: auto;
+}
+
+.rfc-figcaption {
+  margin: 0;
+  padding: 0.65rem 1rem;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--fg-muted);
+}
+
+.fig-num {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg);
+  margin-right: 0.5rem;
+}
+
+.rfc-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-width: 560px;
+}
+
+.svg-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  fill: var(--fg-faint);
+}
+
+.svg-node {
+  fill: var(--surface);
+  stroke: var(--border);
+  stroke-width: 1.25;
+}
+
+.svg-node-accent {
+  stroke: var(--contribution);
+}
+
+.svg-node-green {
+  stroke: var(--met);
+}
+
+.svg-node-amber {
+  stroke: var(--waived);
+}
+
+.svg-box-subtle {
+  fill: var(--bg-subtle);
+  stroke: var(--border-subtle);
+  stroke-width: 1.1;
+}
+
+.svg-zone-lib {
+  fill: var(--contribution-soft);
+  stroke: var(--contribution);
+  stroke-opacity: 0.35;
+  stroke-width: 1.1;
+}
+
+.svg-zone-org {
+  fill: var(--bg-subtle);
+  stroke: var(--border);
+  stroke-width: 1.1;
+}
+
+.svg-node-title {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--fg);
+}
+
+.svg-node-sub {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  fill: var(--fg-muted);
+}
+
+.svg-mono {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  fill: var(--fg);
+}
+
+.svg-mono-sm {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  fill: var(--fg);
+}
+
+.svg-mono-xs {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  fill: var(--fg-muted);
+}
+
+.svg-label {
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  fill: var(--fg-muted);
+}
+
+.svg-caption-inline {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  fill: var(--fg-muted);
+}
+
+.svg-muted {
+  fill: var(--fg-faint);
+}
+
+.svg-plus {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  fill: var(--fg-faint);
+}
+
+.svg-edge {
+  stroke: var(--fg-faint);
+  stroke-width: 1.3;
+}
+
+.svg-edge-blue {
+  stroke: var(--contribution);
+  stroke-width: 1.35;
+}
+
+.svg-edge-green {
+  stroke: var(--met);
+  stroke-width: 1.4;
+}
+
+.svg-edge-amber {
+  stroke: var(--waived);
+  stroke-width: 1.4;
+}
+
+.svg-guide {
+  stroke: var(--border);
+  stroke-width: 1.1;
+  stroke-dasharray: 2 2;
+}
+
+.svg-pill-neutral {
+  fill: var(--surface);
+  stroke: var(--border);
+  stroke-width: 1.1;
+}
+
+.svg-pill-muted {
+  fill: var(--oos-soft);
+  stroke: var(--border);
+  stroke-width: 1.1;
+}
+
+.svg-pill-blue {
+  fill: var(--contribution-soft);
+  stroke: var(--contribution);
+  stroke-opacity: 0.45;
+  stroke-width: 1.1;
+}
+
+.svg-pill-green {
+  fill: var(--met-soft);
+  stroke: var(--met);
+  stroke-opacity: 0.5;
+  stroke-width: 1.1;
+}
+
+.svg-pill-amber {
+  fill: var(--waived-soft);
+  stroke: var(--waived);
+  stroke-opacity: 0.55;
+  stroke-width: 1.1;
+}
+
+.svg-pill-red {
+  fill: var(--gap-soft);
+  stroke: var(--gap);
+  stroke-opacity: 0.5;
+  stroke-width: 1.1;
+}
+
+.svg-ink-blue {
+  fill: var(--contribution-ink);
+}
+
+.svg-ink-green {
+  fill: var(--met-ink);
+}
+
+.svg-ink-amber {
+  fill: var(--waived-ink);
+}
+
+.svg-ink-red {
+  fill: var(--gap-ink);
+}
+
+.svg-venn-t {
+  fill: var(--oos-soft);
+  stroke: var(--fg-faint);
+  stroke-width: 1.2;
+  fill-opacity: 0.65;
+}
+
+.svg-venn-s-green {
+  fill: var(--met-soft);
+  stroke: var(--met);
+  stroke-width: 1.35;
+  fill-opacity: 0.85;
+}
+
+.svg-venn-s-blue {
+  fill: var(--contribution-soft);
+  stroke: var(--contribution);
+  stroke-width: 1.35;
+  fill-opacity: 0.85;
+}
+
+.svg-venn-s-muted {
+  fill: var(--oos-soft);
+  stroke: var(--oos);
+  stroke-width: 1.2;
+}
+
