@@ -62,7 +62,7 @@ Parses every object with strict YAML 1.2 rules, checks it against the RFC 0001 s
 | `--lenient-yaml` | off | Relax the RFC 0001 §6.1 strict YAML checks (allows anchors and nulls) |
 
 ```bash
-ogrl lint ./my-org --library ../OGRL/library --format sarif > ogrl.sarif
+ogrl lint ./my-org --library ../ogrl-library/library --format sarif > ogrl.sarif
 ```
 
 ### fmt
@@ -75,7 +75,7 @@ Rewrites `.yaml`/`.yml` files in canonical key order. A leading block of `#` com
 | `--check` | Report files that would change (`would reformat <file>`) without writing them; exits non-zero if any would change |
 
 ```bash
-ogrl fmt ../OGRL/library --check
+ogrl fmt ../ogrl-library/library --check
 ```
 
 ### import nist
@@ -122,7 +122,7 @@ Imports an OSCAL 1.2.3 component definition (JSON or XML) as an OGRL provider bu
 | `--exchange` | Write a single exchange-form JSON bundle instead of a directory tree |
 
 ```bash
-ogrl import oscal-component --input component.json --library ../OGRL/library --out provider/django
+ogrl import oscal-component --input component.json --library ../ogrl-library/library --out provider/django
 ```
 
 ### bundle pack
@@ -136,7 +136,7 @@ Packs a repository-form directory into one exchange-form bundle. If the director
 | `--format <f>` | `json` | `json` or `yaml` |
 
 ```bash
-ogrl bundle pack ../OGRL/library --out library.json
+ogrl bundle pack ../ogrl-library/library --out library.json
 ```
 
 ### bundle unpack
@@ -152,7 +152,7 @@ ogrl bundle unpack library.json --out ./library
 Prints the deterministic SHA-256 projection digest (`sha-256:<hex>`, computed over RFC 8785 canonical JSON) of the objects in a directory or bundle.
 
 ```bash
-ogrl bundle digest ../OGRL/library
+ogrl bundle digest ../ogrl-library/library
 ```
 
 ### eval
@@ -170,7 +170,7 @@ Computes RFC 0001 §8 status for a program at a given instant. By default it pri
 | `--format <f>` | `text` | `text` or `json` |
 
 ```bash
-ogrl eval ./my-org --library ../OGRL/library --at 2026-11-09T00:00:00Z --summary
+ogrl eval ./my-org --library ../ogrl-library/library --at 2026-11-09T00:00:00Z --summary
 ```
 
 Example `--summary` text output:
@@ -214,7 +214,7 @@ Renders a program as a six-document OSCAL 1.2.3 package: `profile`, `ssp`, `mapp
 | `--xml` | off | Also emit XML |
 
 ```bash
-ogrl render oscal ./my-org --library ../OGRL/library --framework framework--nist-sp-800-53-r5 --out ./oscal --xml
+ogrl render oscal ./my-org --library ../ogrl-library/library --framework framework--nist-sp-800-53-r5 --out ./oscal --xml
 ```
 
 ### render ssp
@@ -222,7 +222,7 @@ ogrl render oscal ./my-org --library ../OGRL/library --framework framework--nist
 Renders a narrative System Security Plan as `ssp.md` and `ssp.json`. It takes the same flags as `render oscal` except `--framework` and `--xml`.
 
 ```bash
-ogrl render ssp ./my-org --library ../OGRL/library --out ./ssp
+ogrl render ssp ./my-org --library ../ogrl-library/library --out ./ssp
 ```
 
 ## Output formats
@@ -297,12 +297,12 @@ Unlike the CLI, `lint_path` counts every diagnostic, warnings included, in `erro
 ```python
 import ogrl_rs
 
-report = ogrl_rs.lint_path("./my-org", library="../OGRL/library")
+report = ogrl_rs.lint_path("./my-org", library="../ogrl-library/library")
 if not report["ok"]:
     for d in report["diagnostics"]:
         print(d["code"], d["detail"])
 
-graph = ogrl_rs.OgrlGraph.from_path("./my-org", library="../OGRL/library")
+graph = ogrl_rs.OgrlGraph.from_path("./my-org", library="../ogrl-library/library")
 status = graph.evaluate("program--com.acme.prod", "2026-11-09T00:00:00Z")
 for f in graph.render_oscal(
     "program--com.acme.prod",
