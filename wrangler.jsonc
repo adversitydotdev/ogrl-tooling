@@ -1,0 +1,15 @@
+{
+  "name": "ogrl-tooling",
+  "compatibility_date": "2026-11-21",
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  "routes": [
+    {
+      "pattern": "tools.adversity.dev",
+      "custom_domain": true
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "ogrl-tooling",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Documentation and RFCs for OGRL tooling (tools.adversity.dev).",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/dev.mjs",
+    "deploy": "node scripts/build.mjs && wrangler deploy"
+  },
+  "devDependencies": {
+    "marked": "^15.0.7"
+  },
+  "packageManager": "pnpm@10.33.0"
+}
