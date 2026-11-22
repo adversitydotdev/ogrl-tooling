@@ -116,7 +116,8 @@ function extractSummary(bodyMarkdown) {
   if (!paragraphs.length) return "";
   return paragraphs[0]
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/[*_`]/g, "")
+    .replace(/[*`]/g, "")
+    .replace(/(^|\W)_+|_+(?=\W|$)/g, "$1")
     .replace(/\s+/g, " ")
     .trim();
 }

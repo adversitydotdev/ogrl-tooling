@@ -14,13 +14,12 @@ const EXT = ' target="_blank" rel="noopener noreferrer"';
 // Index rows show whole sentences up to roughly `max` characters.
 function blurb(text, max = 260) {
   if (text.length <= max) return text;
-  const sentences = text.match(/[^.!?]+[.!?]+(\s|$)/g) || [text];
   let out = "";
-  for (const s of sentences) {
-    if (out && (out + s).length > max) break;
-    out += s;
+  for (const s of text.split(/(?<=[.!?])\s+/)) {
+    if (out && out.length + s.length + 1 > max) break;
+    out = out ? `${out} ${s}` : s;
   }
-  return out.length > max ? `${out.slice(0, max).replace(/\s+\S*$/, "")}…` : out.trim();
+  return out.length > max ? `${out.slice(0, max).replace(/\s+\S*$/, "")}…` : out;
 }
 
 const OGRL_MARK_SVG = `<svg viewBox="0 0 32 32" width="24" height="24" fill="none" aria-hidden="true"><path d="M26.2 16V20.2C26.2 23.51 23.51 26.2 20.2 26.2H11.8C8.49 26.2 5.8 23.51 5.8 20.2V11.8C5.8 8.49 8.49 5.8 11.8 5.8H20.2C22.4 5.8 24.32 6.98 25.36 8.75" stroke="currentColor" stroke-width="3.8" stroke-linecap="butt"/><path d="M15.2 16H28.1" stroke="currentColor" stroke-width="3.8" stroke-linecap="butt"/></svg>`;
