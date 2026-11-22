@@ -11,6 +11,18 @@ function esc(str) {
 
 const EXT = ' target="_blank" rel="noopener noreferrer"';
 
+// Index rows show whole sentences up to roughly `max` characters.
+function blurb(text, max = 260) {
+  if (text.length <= max) return text;
+  const sentences = text.match(/[^.!?]+[.!?]+(\s|$)/g) || [text];
+  let out = "";
+  for (const s of sentences) {
+    if (out && (out + s).length > max) break;
+    out += s;
+  }
+  return out.length > max ? `${out.slice(0, max).replace(/\s+\S*$/, "")}…` : out.trim();
+}
+
 const OGRL_MARK_SVG = `<svg viewBox="0 0 32 32" width="24" height="24" fill="none" aria-hidden="true"><path d="M26.2 16V20.2C26.2 23.51 23.51 26.2 20.2 26.2H11.8C8.49 26.2 5.8 23.51 5.8 20.2V11.8C5.8 8.49 8.49 5.8 11.8 5.8H20.2C22.4 5.8 24.32 6.98 25.36 8.75" stroke="currentColor" stroke-width="3.8" stroke-linecap="butt"/><path d="M15.2 16H28.1" stroke="currentColor" stroke-width="3.8" stroke-linecap="butt"/></svg>`;
 
 const THEME_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41"/></svg>`;
@@ -142,7 +154,7 @@ function docRow(d) {
   <div class="rfc-row-num">DOC</div>
   <div>
     <h2 class="rfc-row-title"><a href="/docs/${d.slug}/">${esc(d.shortTitle)}</a></h2>
-    <p class="rfc-row-summary">${esc(d.summary)}</p>
+    <p class="rfc-row-summary">${esc(blurb(d.summary))}</p>
     <div class="rfc-row-meta">
       ${d.meta.Version ? `<span class="status-pill">v${esc(d.meta.Version.replace(/^v/, ""))}</span>` : ""}
       ${repo ? `<span>${d.inlineMeta(repo)}</span>` : ""}
@@ -166,7 +178,7 @@ function rfcRow(r) {
   <div class="rfc-row-num">RFC ${esc(r.number)}</div>
   <div>
     <h2 class="rfc-row-title"><a href="/rfcs/${r.slug}/">${esc(r.shortTitle)}</a></h2>
-    <p class="rfc-row-summary">${esc(r.summary)}</p>
+    <p class="rfc-row-summary">${esc(blurb(r.summary))}</p>
     <div class="rfc-row-meta">
       <span class="status-pill">${esc(r.meta.Status || "Draft")}</span>
       <span>${esc(r.meta.Date || "")}</span>
