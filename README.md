@@ -28,7 +28,7 @@ Tooling RFCs continue the spec's numbering.
 pnpm install
 pnpm dev      # builds and serves on http://localhost:4174 with file watching
 pnpm build    # generates static site in dist/
-pnpm deploy   # builds and deploys to Cloudflare Workers (tools.adversity.dev)
+pnpm run deploy  # builds and deploys to Cloudflare Workers (tools.adversity.dev)
 ```
 
 The build compiles `docs/*.md` and `rfcs/*.md` into static HTML under `dist/` (with raw Markdown copies beside each page) and fails if any internal or cross-page anchor link does not resolve. Links into the spec site are checked against a sibling `../ogrl-rfcs` checkout when one exists.
