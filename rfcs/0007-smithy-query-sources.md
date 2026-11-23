@@ -5,8 +5,17 @@
 | Status | Draft |
 | Spec version | 0.1.0 |
 | Date | 2026-11-21 |
-| Depends on | [RFC 0005](0005-integrations.md), [RFC 0006](0006-query-sources.md) |
+| Depends on | [RFC 0001](https://ogrl.adversity.dev/rfcs/0001-object-model/) 0.2.0, [RFC 0005](0005-integrations.md), [RFC 0006](0006-query-sources.md) |
 | AI assistance | Drafted and edited with AI tools; human review in progress (see [README](https://github.com/adversitydotdev/ogrl-tooling#ai-assistance)) |
+
+## Changelog
+
+### 0.1.0 (2026-11-21)
+
+- Published on tools.adversity.dev (moved from `adversitydotdev/ogrl`).
+- Added `for_each` per-item calls and `$region` parameters for Smithy operations.
+- Clarified single outputs, reserved field paths, and per-item error handling.
+- Initial public draft: query sources over bundled AWS Smithy models (services, endpoints, read classification, regions fan-out, and pagination).
 
 RFC 0006 defines query sources over a vendor's OpenAPI description. AWS publishes no OpenAPI; it publishes [Smithy](https://smithy.io) models for every service ([`aws/api-models-aws`](https://github.com/aws/api-models-aws), Apache-2.0). This RFC lets an integration bundle Smithy models so organizations can define query sources over AWS operations the same way. The definition, the validation feedback loop, storage, collection, evidence, and the rule preview are RFC 0006's, unchanged; this RFC specifies what differs: naming operations across services, deciding what is a read, endpoints and regions, the wire protocols, and pagination. Open questions are in [Section 10](#10-open-questions).
 

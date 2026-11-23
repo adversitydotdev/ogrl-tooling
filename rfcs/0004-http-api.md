@@ -4,15 +4,24 @@
 |---|---|
 | Status | Draft |
 | Spec version | 0.1.0 |
-| Date | 2026-11-08 |
-| Depends on | [RFC 0001](https://ogrl.adversity.dev/rfcs/0001-object-model/), [RFC 0002](https://ogrl.adversity.dev/rfcs/0002-tooling/), [RFC 0003](0003-application.md) |
+| Date | 2026-11-21 |
+| Depends on | [RFC 0001](https://ogrl.adversity.dev/rfcs/0001-object-model/) 0.2.0, [RFC 0002](https://ogrl.adversity.dev/rfcs/0002-tooling/), [RFC 0003](0003-application.md) |
 | AI assistance | Drafted and edited with AI tools; human review in progress (see [README](https://github.com/adversitydotdev/ogrl-tooling#ai-assistance)) |
+
+## Changelog
+
+### 0.1.0 (2026-11-21)
+
+- Published on tools.adversity.dev (moved from `adversitydotdev/ogrl`).
+- Pointed HTTP API integration and connection workflows at RFC 0005.
+- Renamed OpenGRC to OGRL (terminology and cross-links).
+- Initial public draft of HTTP API design rationale, resource conventions, and operational workflows.
 
 This RFC documents the design rationale, resource conventions, and operational workflows of the HTTP API served by `fathom`. The formal route and schema contract lives in [api/openapi.yaml](https://github.com/adversitydotdev/fathom/blob/main/api/openapi.yaml). Open design questions are collected in [Section 7](#7-open-questions).
 
 ## 1. Summary
 
-The HTTP API speaks the exact object model defined in RFC 0001: every endpoint accepts and returns RFC 0001 objects, paginated lists of them, or computed views produced directly by the kernel. Commercial GRC platforms—Vanta, Drata, Secureframe, and Paramify—all manage the same core operational concepts under proprietary names. [Section 2](#2-how-existing-grc-apis-map-to-ogrl) maps those APIs onto OGRL resources, and [Section 5](#5-workflows-intentionally-left-out-of-the-api) explains why workflows outside the RFC 0001 language do not get ad-hoc routes.
+The HTTP API speaks the exact object model defined in RFC 0001 (spec version 0.2.0): every endpoint accepts and returns RFC 0001 objects, paginated lists of them, or computed views produced directly by the kernel. Commercial GRC platforms—Vanta, Drata, Secureframe, and Paramify—all manage the same core operational concepts under proprietary names. [Section 2](#2-how-existing-grc-apis-map-to-ogrl) maps those APIs onto OGRL resources, and [Section 5](#5-workflows-intentionally-left-out-of-the-api) explains why workflows outside the RFC 0001 language do not get ad-hoc routes.
 
 As established in [RFC 0003](0003-application.md), this API is the sole writer to an organization's database. Library-building CLI commands operate locally without it, future organization CLI commands call it, and the Next.js frontend renders its responses without recomputing status.
 

@@ -5,10 +5,21 @@
 | Status | Draft |
 | Spec version | 0.1.0 |
 | Date | 2026-11-21 |
-| Depends on | [RFC 0001](https://ogrl.adversity.dev/rfcs/0001-object-model/), [RFC 0002](https://ogrl.adversity.dev/rfcs/0002-tooling/), [RFC 0003](0003-application.md), [RFC 0004](0004-http-api.md) |
+| Depends on | [RFC 0001](https://ogrl.adversity.dev/rfcs/0001-object-model/) 0.2.0, [RFC 0002](https://ogrl.adversity.dev/rfcs/0002-tooling/), [RFC 0003](0003-application.md), [RFC 0004](0004-http-api.md) |
 | AI assistance | Drafted and edited with AI tools; human review in progress (see [README](https://github.com/adversitydotdev/ogrl-tooling#ai-assistance)) |
 
-This RFC specifies how Fathom collects live evidence from vendor systems such as identity providers, cloud accounts, and source hosts. It covers integration packages, installing them, connecting them to vendor accounts, collecting snapshots, the protocol between the application and an integration process, and the SDK for writing integrations. RFC 0001 section 7.6 defines the language side: the source grammar, the snapshot document, and the `rule` and `integration` runners. Open questions are collected in [Section 13](#13-open-questions).
+## Changelog
+
+### 0.1.0 (2026-11-21)
+
+- Published on tools.adversity.dev (moved from `adversitydotdev/ogrl`).
+- Updated template examples for standard-library control `control--ogrl-ac-05` (replacing `ogrl-ia-01`).
+- Described disk-free integration execution: in-memory packages, no writable filesystem, and `items` streaming over JSON-RPC.
+- Documented archive installs, upgrades, rollbacks, and template update semantics.
+- Expanded connections with bring-your-own OAuth and `aws_role` STS assume-role flow.
+- Initial public draft: packages, manifests, trust tiers, connections, snapshots, JSON-RPC protocol, templates, SDK, and delivery phases.
+
+This RFC specifies how Fathom collects live evidence from vendor systems such as identity providers, cloud accounts, and source hosts. It covers integration packages, installing them, connecting them to vendor accounts, collecting snapshots, the protocol between the application and an integration process, and the SDK for writing integrations. RFC 0001 (spec version 0.2.0) section 7.6 defines the language side: the source grammar, the snapshot document, and the `rule` and `integration` runners. Open questions are collected in [Section 13](#13-open-questions).
 
 ## 1. Summary
 

@@ -5,8 +5,16 @@
 | Status | Draft |
 | Spec version | 0.1.0 |
 | Date | 2026-11-21 |
-| Depends on | [RFC 0001](https://ogrl.adversity.dev/rfcs/0001-object-model/), [RFC 0003](0003-application.md), [RFC 0004](0004-http-api.md), [RFC 0005](0005-integrations.md) |
+| Depends on | [RFC 0001](https://ogrl.adversity.dev/rfcs/0001-object-model/) 0.2.0, [RFC 0003](0003-application.md), [RFC 0004](0004-http-api.md), [RFC 0005](0005-integrations.md) |
 | AI assistance | Drafted and edited with AI tools; human review in progress (see [README](https://github.com/adversitydotdev/ogrl-tooling#ai-assistance)) |
+
+## Changelog
+
+### 0.1.0 (2026-11-21)
+
+- Published on tools.adversity.dev (moved from `adversitydotdev/ogrl`).
+- Added `for_each` per-item calls over OpenAPI list operations, with `$parent` field projection.
+- Initial public draft: organization-defined query sources over bundled OpenAPI descriptions, read-only enforcement, validation feedback, storage, and export.
 
 RFC 0005 integrations collect a fixed set of resources, each written in code. This RFC lets an organization define more resources without code: a **query source** names one read operation from the vendor's OpenAPI description, its parameters, and the fields to keep. The integration still owns authentication, rate limits, retries, and pagination; the organization decides what to fetch. Tests read a query source exactly as they read a built-in resource, so rules, the runner, the scheduler, evidence, and the rule preview work unchanged. Open questions are in [Section 12](#12-open-questions).
 
