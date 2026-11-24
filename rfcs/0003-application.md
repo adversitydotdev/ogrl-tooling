@@ -12,9 +12,9 @@
 
 ## 1. Summary
 
-At the center of OGRL sits a single pure-Python **kernel** built on Pydantic models of the RFC 0001 schema. The CLI, the FastAPI server, and AI agents all invoke that same kernel so no two entry points can disagree on validation, parameter resolution, or computed status. The web frontend is a Next.js application that communicates strictly over HTTP and renders status computed by the API.
+At the center of Fathom sits a single pure-Python **kernel** built on Pydantic models of the RFC 0001 schema. The CLI, the FastAPI server, and AI agents all invoke that same kernel so no two entry points can disagree on validation, parameter resolution, or computed status. The web frontend is a Next.js application that communicates strictly over HTTP and renders status computed by the API.
 
-In production, the entire stack is designed to self-host inside the organization's own AWS account as a single small ARM Fargate task backed by a single `db.t4g.micro` Postgres instance—provisioned directly from the OGRL repository's CloudFormation template. Because a small team's compliance platform spends most of its life idle, minimizing the **idle monthly bill** is a first-order architectural constraint: the default topology deliberately avoids NAT gateways, load balancers, RDS Proxy, and databases with high minimum floors.
+In production, the entire stack is designed to self-host inside the organization's own AWS account as a single small ARM Fargate task backed by a single `db.t4g.micro` Postgres instance—provisioned directly from the Fathom repository's CloudFormation template. Because a small team's compliance platform spends most of its life idle, minimizing the **idle monthly bill** is a first-order architectural constraint: the default topology deliberately avoids NAT gateways, load balancers, RDS Proxy, and databases with high minimum floors.
 
 AI agents are ordinary callers rather than a privileged sidecar layer. They use the exact same use-case functions as the HTTP API, can write only objects the kernel validates, and are blocked in code from crossing human judgment boundaries—a language model never marks a control `met`.
 
@@ -25,20 +25,20 @@ Extensibility works through four typed ports (importers, renderers, runners, and
 | Process | Stack | Responsibility |
 |---|---|---|
 | `ogrl` (library CLI) | Python | Builds and validates the shared library in the OGRL repository via the kernel; requires no server or organization database. |
-| `ogrl` (server) | Python | Runs the FastAPI HTTP server, background job runner, scheduler, and agents in a single process—the sole writer to the organization's Postgres database. |
+| `fathom` (server) | Python | Runs the FastAPI HTTP server, background job runner, scheduler, and agents in a single process—the sole writer to the organization's Postgres database. |
 | Web frontend | TypeScript, Next.js | User interface; reads and writes exclusively through the HTTP API. |
 
-Self-hosting requires only the `ogrl` server process and the web frontend. Because the CLI and API import the exact same kernel package, they share identical bundle semantics. Future CLI commands that operate on an organization's live program will call the HTTP API rather than connecting to Postgres directly, keeping all RFC 0002 invariants enforced behind a single writer.
+Self-hosting requires only the `fathom` server process and the web frontend. Because the CLI and API import the exact same kernel package, they share identical bundle semantics. Future CLI commands that operate on an organization's live program will call the HTTP API rather than connecting to Postgres directly, keeping all RFC 0002 invariants enforced behind a single writer.
 
 **Background jobs and scheduling.** Long-running operations defined in [RFC 0004](0004-http-api.md)—library pulls, provider imports, test runs, renders, Git exports, restores, and connector collections—are persisted as job rows and return `202 Accepted` immediately so HTTP requests never block on subprocess execution.
 
-- Periodic schedules from RFC 0002 run in whichever process sets `OGRL_RUN_SCHEDULER=true` (the combined API process in the default single-task deployment, or the dedicated job service when `EnableJobService` is enabled).
+- Periodic schedules from RFC 0002 run in whichever process sets `FATHOM_RUN_SCHEDULER=true` (the combined API process in the default single-task deployment, or the dedicated job service when `EnableJobService` is enabled).
 - Workers atomically claim a job row before executing it, preventing duplicate execution across concurrent processes.
-- `OGRL_QUEUE_URL` is unset by default. When SQS wakeups are enabled, the API enqueues the job ID after writing the row and workers receive it as a hint; the database claim remains authoritative so redeliveries safely no-op. Unacknowledged messages become visible again after two hours and move to a dead-letter queue after five deliveries.
+- `FATHOM_QUEUE_URL` is unset by default. When SQS wakeups are enabled, the API enqueues the job ID after writing the row and workers receive it as a hint; the database claim remains authoritative so redeliveries safely no-op. Unacknowledged messages become visible again after two hours and move to a dead-letter queue after five deliveries.
 
-**Process environment.** `OGRL_PROCESS` selects `api` or `jobs`. The Next.js frontend reads `OGRL_API_ORIGIN` (default `http://127.0.0.1:8080`) and proxies `/v1` and `/health` to the API container inside the same task. `OGRL_SSM_PREFIX` locates Parameter Store secrets: `database/password`, optional task-terminated TLS material (`tls/certificate`, `tls/private-key`), optional LLM key (`model/api-key`), and test-harness credentials under `harness/`.
+**Process environment.** `FATHOM_PROCESS` selects `api` or `jobs`. The Next.js frontend reads `FATHOM_API_ORIGIN` (default `http://127.0.0.1:8080`) and proxies `/v1` and `/health` to the API container inside the same task. `FATHOM_SSM_PREFIX` locates Parameter Store secrets: `database/password`, optional task-terminated TLS material (`tls/certificate`, `tls/private-key`), optional LLM key (`model/api-key`), and test-harness credentials under `harness/`.
 
-The HTTP server uses [FastAPI](https://fastapi.tiangolo.com/) implementing the hand-authored OpenAPI contract ([api/openapi.yaml](https://github.com/adversitydotdev/ogrl/blob/main/api/openapi.yaml)) and [RFC 0004](0004-http-api.md).
+The HTTP server uses [FastAPI](https://fastapi.tiangolo.com/) implementing the hand-authored OpenAPI contract ([api/openapi.yaml](https://github.com/adversitydotdev/fathom/blob/main/api/openapi.yaml)) and [RFC 0004](0004-http-api.md).
 
 ## 3. Kernel
 
@@ -50,7 +50,7 @@ Heavy parsing, parallel graph linting, library diffs, and OSCAL 1.2.3 import/ren
 
 ## 4. Agents
 
-OGRL uses [Pydantic AI](https://ai.pydantic.dev/) for agent workflows that draft narratives, propose crosswalks, or gather operational context. Every tool exposed to an agent wraps a kernel function or application use case with typed Pydantic inputs and outputs; malformed structured outputs fail validation before reaching storage.
+Fathom uses [Pydantic AI](https://ai.pydantic.dev/) for agent workflows that draft narratives, propose crosswalks, or gather operational context. Every tool exposed to an agent wraps a kernel function or application use case with typed Pydantic inputs and outputs; malformed structured outputs fail validation before reaching storage.
 
 Dependencies flow strictly in one direction: the agent package imports the kernel, never the reverse, and the kernel has no awareness of whether any LLM is configured.
 
@@ -89,7 +89,7 @@ External capabilities plug into the core through four Python `Protocol` interfac
 
 The secret handle resolves only the variable names declared in `test.run.env`; secret values never appear inside test objects.
 
-**Credential isolation for runners.** The harness spawns runner subprocesses under a dedicated OS user with a scrubbed environment containing *only* the requested `run.env` variables and `OGRL_*` metadata variables. Subprocesses never inherit database credentials, the API's AWS IAM credentials, or secrets belonging to other tests, and cannot inspect the API process environment. Scripts emit evidence by writing files to their scratch directory, which the harness hashes and uploads. Scripts requiring cloud access receive dedicated, narrowly scoped credentials stored under `harness/` in Parameter Store.
+**Credential isolation for runners.** The harness spawns runner subprocesses under a dedicated OS user with a scrubbed environment containing *only* the requested `run.env` variables and `FATHOM_*` metadata variables. Subprocesses never inherit database credentials, the API's AWS IAM credentials, or secrets belonging to other tests, and cannot inspect the API process environment. Scripts emit evidence by writing files to their scratch directory, which the harness hashes and uploads. Scripts requiring cloud access receive dedicated, narrowly scoped credentials stored under `harness/` in Parameter Store.
 
 Note that this provides **credential separation**, not a kernel or network sandbox: scripts still share the task's network namespace and kernel. Organizations that do not fully trust test authors should enable the dedicated job service (`EnableJobService`) to isolate script execution from the API task, and RFC 0004 treats permission to author `run` blocks as its own privileged capability.
 
@@ -99,7 +99,7 @@ Note that this provides **credential separation**, not a kernel or network sandb
 
 Organization-supplied runners and connectors run as standalone executables rather than in-process Python plugins, keeping third-party code outside the API's address space.
 
-`ogrl` spawns the executable, writes a JSON request containing RFC 0001 objects to `stdin`, and reads RFC 0001 JSON objects from `stdout`. Required secrets are injected exclusively via environment variables (the request payload carries variable names, never values). Every returned object passes through the exact same kernel validator used for files and HTTP writes.
+`fathom` spawns the executable, writes a JSON request containing RFC 0001 objects to `stdin`, and reads RFC 0001 JSON objects from `stdout`. Required secrets are injected exclusively via environment variables (the request payload carries variable names, never values). Every returned object passes through the exact same kernel validator used for files and HTTP writes.
 
 Plugins may be written in any language capable of speaking JSON over stdio. Any non-zero crash, timeout, or schema validation failure is captured as a `result` with `outcome: error` so the harness logs the failure and moves on cleanly to the next test.
 
@@ -119,7 +119,7 @@ Neither the Next.js web app nor the `ogrl` CLI ever connects directly to Postgre
 
 ## 8. Web application
 
-The frontend is a Next.js and TypeScript application that acts purely as a presentation layer over [RFC 0004](0004-http-api.md) ([api/openapi.yaml](https://github.com/adversitydotdev/ogrl/blob/main/api/openapi.yaml)). It renders computed statuses returned by the API without duplicating evaluation logic in the browser.
+The frontend is a Next.js and TypeScript application that acts purely as a presentation layer over [RFC 0004](0004-http-api.md) ([api/openapi.yaml](https://github.com/adversitydotdev/fathom/blob/main/api/openapi.yaml)). It renders computed statuses returned by the API without duplicating evaluation logic in the browser.
 
 UI primitives are sourced from [Spectrum UI](https://ui.spectrumhq.in/) (built on Tailwind CSS, Motion, TypeScript, and shadcn/ui), vendored directly into the repository so components can be tailored without taking a runtime dependency on Spectrum.
 
@@ -129,7 +129,7 @@ Initial views focus strictly on operating a live program—system overview, base
 
 ## 9. Production topology
 
-OGRL ships an AWS CloudFormation template ([deploy/aws/template.yaml](https://github.com/adversitydotdev/ogrl/blob/main/deploy/aws/template.yaml)) so each organization deploys cleanly into its own cloud account. Additional cloud providers will ship as alternate infrastructure templates implementing the same bindings rather than forks of the application.
+Fathom ships an AWS CloudFormation template ([deploy/aws/template.yaml](https://github.com/adversitydotdev/fathom/blob/main/deploy/aws/template.yaml)) so each organization deploys cleanly into its own cloud account. Additional cloud providers will ship as alternate infrastructure templates implementing the same bindings rather than forks of the application.
 
 **Designing for the idle bill.** A small team's GRC tool sees modest interactive traffic punctuated by periodic test runs and exports. Typical "enterprise defaults" in `us-east-1` burn substantial idle spend before handling a single request—roughly $33/month for a NAT gateway, ~$45/month for Aurora Serverless v2's 0.5 ACU floor, ~$11/month for RDS Proxy, and ~$7/month per AZ for interface VPC endpoints—none of which improve reliability for a low-traffic compliance app.
 
@@ -137,7 +137,7 @@ The baseline topology therefore runs one compact task and one single-AZ database
 
 | Capability | Default AWS binding | Role |
 |---|---|---|
-| Compute | 1 Linux/ARM Fargate task (`0.25 vCPU`, `1 GB`) | Runs both `ogrl` (API, scheduler, harness, agents) and Next.js in one task so vCPU/RAM are billed once; ARM aligns with `db.t4g`. |
+| Compute | 1 Linux/ARM Fargate task (`0.25 vCPU`, `1 GB`) | Runs both `fathom` (API, scheduler, harness, agents) and Next.js in one task so vCPU/RAM are billed once; ARM aligns with `db.t4g`. |
 | Database | RDS PostgreSQL `db.t4g.micro`, single-AZ, `20 GB` gp3 | Organization database; scales vertically via template parameters when needed. |
 | Object storage | Private S3 bucket | Evidence blobs, policy/procedure bodies, and rendered packages. |
 | Secrets | SSM Parameter Store | Database password, TLS material, optional LLM API key, and `harness/` credentials. |
@@ -164,14 +164,14 @@ Operators should size up `TaskSize` and the RDS instance before splitting out a 
 
 **Deployment lifecycle and mail.** Applying `deploy/aws/template.yaml` provisions networking, RDS, S3, ECR repositories, task definitions, IAM roles, and an SES domain identity (when a domain is provided; exiting the SES sandbox remains an account-level operator step). `EnableServices` defaults to `false` so the first deploy provisions ECR before images are pushed. Because CloudFormation cannot synthesize SecureStrings, operators write `database/password` (and `tls/certificate` / `tls/private-key` when terminating TLS on the task) under the stack's SSM prefix prior to the first apply.
 
-Local development requires none of AWS: `ogrl` runs as a single process against local Postgres, and kernel tests run completely in memory.
+Local development requires none of AWS: `fathom` runs as a single process against local Postgres, and kernel tests run completely in memory.
 
 ## 10. Repository layout
 
-Structure of the OGRL application repository (with the shared standard library in `adversitydotdev/ogrl-library` and the Rust core/CLI in `adversitydotdev/ogrl-rs`):
+Structure of the Fathom application repository (with the shared standard library in `adversitydotdev/ogrl-library` and the Rust core/CLI in `adversitydotdev/ogrl-rs`):
 
 ```text
-ogrl/
+fathom/
   kernel/        # Pydantic models, graph validation, parameter resolution, status
   importer/      # Importer port and NIST / OSCAL component importers
   renderer/      # Git snapshot and OSCAL 1.2.3 renderers
@@ -180,7 +180,7 @@ ogrl/
   persistence/   # SQLModel rows, Postgres repositories, Alembic migrations
   telemetry.py   # Sole module importing logfire
   api/           # FastAPI application and in-process job runner
-  cli/           # ogrl CLI
+  cli/           # fathom CLI
 web/             # Next.js frontend
 deploy/aws/      # CloudFormation template for production AWS deployment
 ```
@@ -191,7 +191,7 @@ Subprocess connectors live in their own independent repositories rather than ins
 
 Application code emits logs through Python's standard `logging` module; neither the kernel nor operations import any observability vendor directly.
 
-Structured logging and distributed tracing are wired once at process startup inside `ogrl/telemetry.py` using the MIT-licensed OpenTelemetry-based [Logfire](https://logfire.pydantic.dev/) SDK, which auto-instruments FastAPI, SQLAlchemy, `asyncpg`, `httpx`, and Pydantic AI so an HTTP request, its SQL queries, and any agent invocation correlate under a single trace. Confining the import to one module makes swapping telemetry backends trivial.
+Structured logging and distributed tracing are wired once at process startup inside `fathom/telemetry.py` using the MIT-licensed OpenTelemetry-based [Logfire](https://logfire.pydantic.dev/) SDK, which auto-instruments FastAPI, SQLAlchemy, `asyncpg`, `httpx`, and Pydantic AI so an HTTP request, its SQL queries, and any agent invocation correlate under a single trace. Confining the import to one module makes swapping telemetry backends trivial.
 
 Telemetry destination is purely runtime configuration and never requires the hosted Logfire service:
 

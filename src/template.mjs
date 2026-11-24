@@ -42,9 +42,9 @@ const REPOS = [
     doc: "/docs/cli/",
   },
   {
-    name: "ogrl",
+    name: "fathom",
     kind: "Application · Python",
-    role: "Self-hosted application: HTTP API, job worker, web UI, agents, and integration host.",
+    role: "Fathom, the self-hosted application: HTTP API, job worker, web UI, agents, and integration host.",
     doc: "/docs/self-hosting/",
   },
   {
@@ -237,7 +237,7 @@ export function renderIndexPage({ docs, rfcs }) {
     "OGRL Tooling · Documentation &amp; Request for Comments",
     "Tools for running an OGRL program.",
     `The OGRL language is a spec. This site documents the software built on it: the <code>ogrl</code>
-      CLI, the self-hosted application and its HTTP API, the integration SDK, and first-party
+      CLI, Fathom (the self-hosted application) and its HTTP API, the integration SDK, and first-party
       integrations that collect live evidence from vendor systems. Design changes to these tools are
       proposed here as RFCs.`,
   )}
@@ -261,7 +261,7 @@ export function renderIndexPage({ docs, rfcs }) {
   return renderShell({
     title: "OGRL Tooling — Docs & RFCs",
     description:
-      "Documentation and RFCs for OGRL tooling: the ogrl CLI, the self-hosted application, the integration SDK, and first-party integrations.",
+      "Documentation and RFCs for OGRL tooling: the ogrl CLI, the Fathom self-hosted application, the integration SDK, and first-party integrations.",
     activeNav: "index",
     body,
   });
@@ -291,7 +291,7 @@ export function renderRfcsIndexPage({ rfcs }) {
   const body = `${hero(
     "OGRL Tooling · Request for Comments",
     "Tooling RFCs.",
-    `Design proposals for the OGRL application, HTTP API, integrations, and query sources. Language
+    `Design proposals for the Fathom application, HTTP API, integrations, and query sources. Language
       RFCs (0001–0002) live on the <a href="${SPEC_SITE}/"${EXT}>specification site</a>; tooling RFCs
       continue the same numbering.`,
   )}

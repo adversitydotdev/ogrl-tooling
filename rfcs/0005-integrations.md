@@ -8,7 +8,7 @@
 | Depends on | [RFC 0001](https://ogrl.adversity.dev/rfcs/0001-object-model/), [RFC 0002](https://ogrl.adversity.dev/rfcs/0002-tooling/), [RFC 0003](0003-application.md), [RFC 0004](0004-http-api.md) |
 | AI assistance | Drafted and edited with AI tools; human review in progress (see [README](https://github.com/adversitydotdev/ogrl-tooling#ai-assistance)) |
 
-This RFC specifies how the OGRL application collects live evidence from vendor systems such as identity providers, cloud accounts, and source hosts. It covers integration packages, installing them, connecting them to vendor accounts, collecting snapshots, the protocol between the application and an integration process, and the SDK for writing integrations. RFC 0001 section 7.6 defines the language side: the source grammar, the snapshot document, and the `rule` and `integration` runners. Open questions are collected in [Section 13](#13-open-questions).
+This RFC specifies how Fathom collects live evidence from vendor systems such as identity providers, cloud accounts, and source hosts. It covers integration packages, installing them, connecting them to vendor accounts, collecting snapshots, the protocol between the application and an integration process, and the SDK for writing integrations. RFC 0001 section 7.6 defines the language side: the source grammar, the snapshot document, and the `rule` and `integration` runners. Open questions are collected in [Section 13](#13-open-questions).
 
 ## 1. Summary
 
@@ -16,7 +16,7 @@ An **integration** is a package that knows how to read one vendor. An organizati
 
 Three properties drive the design:
 
-- **Credentials never leave the deployment.** OGRL is self-hosted by one organization ([RFC 0003](0003-application.md)). Integrations run inside that deployment, and each organization registers its own OAuth applications. No adversity.dev service handles tokens.
+- **Credentials never leave the deployment.** Fathom is self-hosted by one organization ([RFC 0003](0003-application.md)). Integrations run inside that deployment, and each organization registers its own OAuth applications. No adversity.dev service handles tokens.
 - **Collect once, evaluate many times.** Only collection talks to the vendor and only collection holds credentials. Checks see snapshots and nothing else, so ten tests about Okta users make one set of Okta API calls, and the auditor can open the exact data each result was computed from.
 - **Integrations cannot change status.** They produce snapshots and check outcomes. Status computation stays in the kernel ([RFC 0003 section 5](0003-application.md#5-ports)).
 
@@ -48,7 +48,7 @@ bin/linux-arm64/okta          # runtime: binary (one per platform)
 bin/linux-amd64/okta
 ```
 
-**Runtimes.** `python` packages carry pure-Python wheels (`py3-none-any`) under `wheels/` and an entry point (`module:callable`, such as `okta_integration:app.run`). The host runs the entry point with the interpreter already in the OGRL image (`python -I`). An installed package runs **from memory**: the host writes the package's `.py` files and wheels as the first line on the process's stdin, and a small bootstrap serves them to `import`, including modules inside the wheels. A directory package imports from its directory, which may be a read-only mount. Either way nothing is unpacked or installed, and nothing is written to disk, so OGRL runs integrations on a read-only root filesystem. The SDK has no dependencies for this reason, and package code must not read files beside its modules: data belongs in code. Packages that need compiled dependencies use the `binary` runtime, which runs only from a directory package because an executable must exist as a file. `binary` packages carry one static executable per platform; the production image is `linux/arm64` ([RFC 0003 section 9](0003-application.md#9-production-topology)) and local development commonly needs `darwin/arm64`. Any language that can emit a static binary can target `binary`, which is how the TypeScript SDK ([Section 10](#10-sdk-and-tooling)) ships.
+**Runtimes.** `python` packages carry pure-Python wheels (`py3-none-any`) under `wheels/` and an entry point (`module:callable`, such as `okta_integration:app.run`). The host runs the entry point with the interpreter already in the Fathom image (`python -I`). An installed package runs **from memory**: the host writes the package's `.py` files and wheels as the first line on the process's stdin, and a small bootstrap serves them to `import`, including modules inside the wheels. A directory package imports from its directory, which may be a read-only mount. Either way nothing is unpacked or installed, and nothing is written to disk, so Fathom runs integrations on a read-only root filesystem. The SDK has no dependencies for this reason, and package code must not read files beside its modules: data belongs in code. Packages that need compiled dependencies use the `binary` runtime, which runs only from a directory package because an executable must exist as a file. `binary` packages carry one static executable per platform; the production image is `linux/arm64` ([RFC 0003 section 9](0003-application.md#9-production-topology)) and local development commonly needs `darwin/arm64`. Any language that can emit a static binary can target `binary`, which is how the TypeScript SDK ([Section 10](#10-sdk-and-tooling)) ships.
 
 **Manifest.**
 
@@ -116,7 +116,7 @@ An integration may emit more than one major version of a resource during a trans
 
 ## 4. Installing and trust
 
-**Where packages live.** Fargate tasks have no persistent disk, so installing cannot mean unpacking into the container. An install records a row (`integration id`, `version`, archive digest, trust tier, installer, time, source, enabled) in `integration_installs` and copies the archive into the deployment's object storage under `integrations/<id>/<version>/<digest>.tar.gz`. Each process fetches an archive the first time it needs it, verifies the digest, and holds its files in memory; nothing is unpacked to disk. A replaced task re-fetches on demand, and every process reads which version is enabled from the database before it uses a package, so the API and the job service agree. Installs run as jobs (`integration_install`). A version is immutable: installing the same version with different bytes is refused. Reading an archive refuses absolute paths, `..`, links, and devices, and caps entries and size. Fetches go through the object-storage port, so a deployment that wants a shared cache in front of S3 (Redis, for example) can wrap that port; none is needed by default. Packages loaded from `OGRL_INTEGRATIONS_DIR` keep working beside installed ones; an archive cannot take over the id of a directory package.
+**Where packages live.** Fargate tasks have no persistent disk, so installing cannot mean unpacking into the container. An install records a row (`integration id`, `version`, archive digest, trust tier, installer, time, source, enabled) in `integration_installs` and copies the archive into the deployment's object storage under `integrations/<id>/<version>/<digest>.tar.gz`. Each process fetches an archive the first time it needs it, verifies the digest, and holds its files in memory; nothing is unpacked to disk. A replaced task re-fetches on demand, and every process reads which version is enabled from the database before it uses a package, so the API and the job service agree. Installs run as jobs (`integration_install`). A version is immutable: installing the same version with different bytes is refused. Reading an archive refuses absolute paths, `..`, links, and devices, and caps entries and size. Fetches go through the object-storage port, so a deployment that wants a shared cache in front of S3 (Redis, for example) can wrap that port; none is needed by default. Packages loaded from `FATHOM_INTEGRATIONS_DIR` keep working beside installed ones; an archive cannot take over the id of a directory package.
 
 **One enabled version.** At most one version of an integration is enabled at a time. Every connection and check uses it. An upgrade that removes a resource major or a check major that an enabled test reads is refused until the tests are migrated ([Section 8](#8-checks-and-templates)).
 
@@ -126,9 +126,9 @@ An integration may emit more than one major version of a resource during a trans
 |---|---|---|
 | First-party | Sigstore signature from the `adversitydotdev` release workflow identity. | Any operator allowed to manage integrations. |
 | Verified | Sigstore signature from a publisher identity listed in the registry. | Same. |
-| Local | Unsigned, or signed by an identity the registry does not list. | Only when `OGRL_ALLOW_LOCAL_INTEGRATIONS=true`; the UI marks every integration in this tier. |
+| Local | Unsigned, or signed by an identity the registry does not list. | Only when `FATHOM_ALLOW_LOCAL_INTEGRATIONS=true`; the UI marks every integration in this tier. |
 
-Until Sigstore verification ships with the registry (P2), every archive installs as `local`, so archive installs need `OGRL_ALLOW_LOCAL_INTEGRATIONS=true`. A `digest` on the install request pins the exact bytes.
+Until Sigstore verification ships with the registry (P2), every archive installs as `local`, so archive installs need `FATHOM_ALLOW_LOCAL_INTEGRATIONS=true`. A `digest` on the install request pins the exact bytes.
 
 **Registry.** `adversitydotdev/ogrl-integrations` is a Git repository of index files, one per integration, listing the publisher's signing identity and each version's archive URL and digest. The application reads a pinned revision of the index the same way it pins the library (RFC 0002 section 5). Operators can also install from an archive URL or upload; the tier rules still apply.
 
@@ -145,7 +145,7 @@ A connection holds:
 | `auth_kind` | Which manifest `auth` entry is in use. |
 | `bindings` | Component and system IDs this vendor account serves. |
 | `state` | `pending` (credentials not validated), `active`, `failing` (last validation or collection failed), or `disabled`. |
-| `last_validated`, `identity` | When validation last succeeded, and the vendor identity it reported (such as `acme.okta.com as svc-ogrl`). |
+| `last_validated`, `identity` | When validation last succeeded, and the vendor identity it reported (such as `acme.okta.com as svc-fathom`). |
 
 Connections are stored in their own table with every change recorded in the revision log beside the actor. They are not RFC 0001 objects and are not part of Git export; an organization restoring from a snapshot re-creates connections and re-enters credentials.
 
@@ -164,19 +164,19 @@ Binding the "Corporate IdP" component to an Okta connection therefore covers eve
 |---|---|
 | `fields` | The operator enters each declared field. Covers API tokens, service-account keys, and GitHub App IDs with private keys (the integration mints installation tokens itself). |
 | `oauth2` | Bring-your-own OAuth application, below. |
-| `aws_role` | The connection's config carries `aws_role_arn`. The operator creates a read-only IAM role in the target account, tagged `ogrl-integration=true`, trusting the OGRL task role and requiring the external ID the application generates per connection (returned as `external_id`). The harness calls `sts:AssumeRole` before each operation and passes short-lived credentials to the integration. The task role has `sts:AssumeRole` only on roles with that tag. |
+| `aws_role` | The connection's config carries `aws_role_arn`. The operator creates a read-only IAM role in the target account, tagged `ogrl-integration=true`, trusting the Fathom task role and requiring the external ID the application generates per connection (returned as `external_id`). The harness calls `sts:AssumeRole` before each operation and passes short-lived credentials to the integration. The task role has `sts:AssumeRole` only on roles with that tag. |
 
-**Bring-your-own OAuth.** Each organization registers its own OAuth application with the vendor. The connection form shows the vendor's setup steps from the integration's documentation and the deployment's single callback URL, `${OGRL_PUBLIC_URL}/v1/oauth/callback`. The operator enters the client ID and secret as the secrets `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET`, then starts the flow:
+**Bring-your-own OAuth.** Each organization registers its own OAuth application with the vendor. The connection form shows the vendor's setup steps from the integration's documentation and the deployment's single callback URL, `${FATHOM_PUBLIC_URL}/v1/oauth/callback`. The operator enters the client ID and secret as the secrets `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET`, then starts the flow:
 
 1. `POST /v1/connections/{id}/oauth/start` returns the authorize URL with the manifest's scopes, a PKCE challenge when `pkce: true`, and a random `state`. The server keeps only a hash of `state`, bound to the connection and the person who started the flow; it is single-use and expires after ten minutes. (The web UI calls the API with a bearer token from the server, so the state is not tied to a browser cookie.)
 2. The vendor redirects to `/v1/oauth/callback`. The application verifies `state`, exchanges the code, and stores the refresh token as a secret.
 3. Before each operation the harness refreshes the access token and passes it to the integration as `OGRL_ACCESS_TOKEN`. Integrations never see the client secret or refresh token.
 
-OAuth requires a stable origin. The default topology has no load balancer and a task's public address changes when it is replaced, so the application refuses to start an OAuth flow unless `OGRL_PUBLIC_URL` is set (the `PublicUrl` template parameter). Operators set it after configuring a domain or enabling `EnableLoadBalancer`. Integrations should offer a non-OAuth `auth` entry where the vendor supports one, since those work on the default topology.
+OAuth requires a stable origin. The default topology has no load balancer and a task's public address changes when it is replaced, so the application refuses to start an OAuth flow unless `FATHOM_PUBLIC_URL` is set (the `PublicUrl` template parameter). Operators set it after configuring a domain or enabling `EnableLoadBalancer`. Integrations should offer a non-OAuth `auth` entry where the vendor supports one, since those work on the default topology.
 
 ## 6. Collection
 
-**Scheduling.** The scheduler process ([RFC 0003 section 2](0003-application.md#2-processes)) evaluates every non-revoked test whose runner is `rule` or `integration`. When a test is due (its current result is older than its freshness window, or every hour for `continuous`), the scheduler makes sure each source it reads has a snapshot younger than `OGRL_SNAPSHOT_REUSE` (default one hour) for every bound connection. It enqueues collection jobs for any that are missing, then enqueues the test run once they finish. Collection jobs are deduplicated on `(connection, source)` while one is queued or running, and each connection runs one collection at a time so the integration can respect vendor rate limits. Operators can also trigger a collection or a test run by hand.
+**Scheduling.** The scheduler process ([RFC 0003 section 2](0003-application.md#2-processes)) evaluates every non-revoked test whose runner is `rule` or `integration`. When a test is due (its current result is older than its freshness window, or every hour for `continuous`), the scheduler makes sure each source it reads has a snapshot younger than `FATHOM_SNAPSHOT_REUSE` (default one hour) for every bound connection. It enqueues collection jobs for any that are missing, then enqueues the test run once they finish. Collection jobs are deduplicated on `(connection, source)` while one is queued or running, and each connection runs one collection at a time so the integration can respect vendor rate limits. Operators can also trigger a collection or a test run by hand.
 
 **Building the snapshot.** The integration streams items to the host as `items` notifications ([Section 7](#7-protocol)). The harness then:
 
@@ -184,9 +184,9 @@ OAuth requires a stable origin. The default topology has no load balancer and a 
 2. Writes the RFC 0001 snapshot document in canonical JSON, with `source`, `collected` set to the time the integration returned, `complete` as the integration reported it, and the items.
 3. Stores the bytes in object storage under `snapshots/<connection id>/<source>/<collected>.json`, and a row recording connection, source, `collected`, `complete`, item count, size, URI, SHA-256 digest, and the job.
 
-A collection that fails records no snapshot, marks the connection `failing`, and sends an operational alert ([RFC 0003 section 9](0003-application.md#9-production-topology)). A collection that the integration ends early stores a snapshot with `complete: false` so operators can see what was retrieved, but no test evaluates it. Snapshots larger than `OGRL_SNAPSHOT_MAX_BYTES` (default 100 MB) fail the collection.
+A collection that fails records no snapshot, marks the connection `failing`, and sends an operational alert ([RFC 0003 section 9](0003-application.md#9-production-topology)). A collection that the integration ends early stores a snapshot with `complete: false` so operators can see what was retrieved, but no test evaluates it. Snapshots larger than `FATHOM_SNAPSHOT_MAX_BYTES` (default 100 MB) fail the collection.
 
-**Retention.** A snapshot referenced by any `evidence` object is kept as long as that evidence. Unreferenced snapshots are deleted after `OGRL_SNAPSHOT_RETENTION_DAYS` (default 30). Resource schemas should declare only the fields checks need, since everything declared is retained as evidence.
+**Retention.** A snapshot referenced by any `evidence` object is kept as long as that evidence. Unreferenced snapshots are deleted after `FATHOM_SNAPSHOT_RETENTION_DAYS` (default 30). Resource schemas should declare only the fields checks need, since everything declared is retained as evidence.
 
 ## 7. Protocol
 
@@ -212,7 +212,7 @@ During `collect` the process sends `{"method": "items", "params": {"items": [...
 
 ## 8. Checks and templates
 
-**Rules** are evaluated in process by the `rule` runner (`ogrl/kernel/rules.py`). The first release uses [`common-expression-language`](https://pypi.org/project/common-expression-language/), Python bindings over the Rust `cel` crate. Evaluation moves into [`ogrl-rs`](https://github.com/adversitydotdev/ogrl-rs) on the same crate once the CLI gains `ogrl rule eval test.yaml --snapshot users.json`, so authors can test a rule against a saved snapshot without a server and the CLI and server agree.
+**Rules** are evaluated in process by the `rule` runner (`fathom/kernel/rules.py`). The first release uses [`common-expression-language`](https://pypi.org/project/common-expression-language/), Python bindings over the Rust `cel` crate. Evaluation moves into [`ogrl-rs`](https://github.com/adversitydotdev/ogrl-rs) on the same crate once the CLI gains `ogrl rule eval test.yaml --snapshot users.json`, so authors can test a rule against a saved snapshot without a server and the CLI and server agree.
 
 **Preview.** `POST /rules/preview` evaluates a rule exactly as the runner would, over the latest complete snapshot from each connection (or those bound to an implementation), without collecting, without a freshness window, and without recording anything. It returns compile errors by field, warnings for `item.<field>` names the resource schema lacks, the failing subjects, and the snapshots and parameters it used, so an author sees what a rule would flag before saving it. `GET /integrations` lists each resource's fields from its schema for the same reason.
 
@@ -233,7 +233,7 @@ The test is then owned by the organization and can be edited like any other. Whe
 ## 9. Isolation and security
 
 - **Process separation.** Integration processes run under the dedicated runner OS user with the scrubbed environment from [RFC 0003 section 5](0003-application.md#5-ports), plus only the current connection's credentials. They never inherit the database credential, the task's AWS credentials, or another connection's secrets.
-- **Checks hold no credentials.** A malicious or buggy check can misreport an outcome but cannot reach the vendor through OGRL's credentials.
+- **Checks hold no credentials.** A malicious or buggy check can misreport an outcome but cannot reach the vendor through Fathom's credentials.
 - **Read-only by construction.** No protocol operation writes to a vendor, and manifests list the read scopes they request. First-party and verified review rejects integrations that request write scopes.
 - **Bounded output.** The harness enforces timeouts, the snapshot size cap, schema validation with field stripping, and the stderr cap.
 - **Not a sandbox.** As with `shell`, the integration process shares the task's network and kernel. It can reach any host and read any file its OS user can. Trust tiers decide what may be installed; operators running verified or local integrations alongside sensitive workloads should enable `EnableJobService` so collection runs outside the API task. Manifests already declare `egress` so enforcement can arrive without a manifest change ([Section 13](#13-open-questions)).
@@ -322,7 +322,7 @@ The Section 5 row on vendor-specific routes still holds: there are no `/integrat
 ## 13. Open questions
 
 1. **Egress enforcement.** Fargate offers no per-process network policy inside a task. Options are a filtering forward proxy in the task that integration processes must use (with `egress` as its allowlist), or one task per collection with its own security group. Both cost money or complexity the idle bill does not have room for by default.
-2. **Event-driven collection.** Vendor webhooks would let `continuous` tests react in minutes, but they need a stable public endpoint and per-vendor signature verification. They wait for `OGRL_PUBLIC_URL` to be common and for a vendor that offers useful events.
+2. **Event-driven collection.** Vendor webhooks would let `continuous` tests react in minutes, but they need a stable public endpoint and per-vendor signature verification. They wait for `FATHOM_PUBLIC_URL` to be common and for a vendor that offers useful events.
 3. **Normalized sources.** RFC 0001 open question 9. If OGRL defines shared item shapes such as `dev.ogrl.identity/users@1`, the standard library could ship executable rules and an organization could switch identity providers without rewriting tests.
 4. **Personal data in snapshots.** Snapshots of users are personal data kept as evidence. Field stripping limits what is stored, but organizations may need a shorter retention for snapshots than for other evidence, which interacts with RFC 0001 evidence immutability.
 5. **Authorization.** Installing integrations, writing secrets, and enabling templates should be separate permissions once roles exist ([RFC 0004 section 7](0004-http-api.md#7-open-questions)). Until then any valid token can do all three.

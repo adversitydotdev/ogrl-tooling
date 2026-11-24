@@ -22,7 +22,7 @@ const SPEC_RFCS_DIR = path.resolve(ROOT, "..", "ogrl-rfcs", "rfcs");
 
 // Display order and index-card copy for docs pages. Unlisted docs sort last, alphabetically.
 const DOCS = {
-  "self-hosting": { kicker: "Application", tagline: "Run the API, job worker, and web UI locally or on AWS." },
+  "self-hosting": { kicker: "Fathom", tagline: "Run the Fathom API, job worker, and web UI locally or on AWS." },
   cli: { kicker: "ogrl CLI", tagline: "Lint, format, import, evaluate, diff, and render OSCAL from the command line." },
   "integration-sdk": { kicker: "SDK", tagline: "Write, test, and package integrations that collect vendor snapshots." },
   integrations: { kicker: "Integrations", tagline: "Okta, GitHub, and AWS: setup, resources, and check templates." },

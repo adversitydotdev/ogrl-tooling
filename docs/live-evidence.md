@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Repository | [adversitydotdev/ogrl](https://github.com/adversitydotdev/ogrl) |
+| Repository | [adversitydotdev/fathom](https://github.com/adversitydotdev/fathom) |
 | Specified by | [RFC 0005](/rfcs/0005-integrations/), [RFC 0006](/rfcs/0006-query-sources/), [RFC 0007](/rfcs/0007-smithy-query-sources/), [RFC 0001 §7.6](https://ogrl.adversity.dev/rfcs/0001-object-model/) |
 | Audience | People who connect vendors, write tests, and read results |
 
@@ -30,7 +30,7 @@ The test never names a connection. It names a source, and the implementation it 
 
 ## Connections and bindings
 
-A connection is bound to one or more components or systems. When a test runs against an implementation, OGRL reads the connections bound to the implementation's scope:
+A connection is bound to one or more components or systems. When a test runs against an implementation, Fathom reads the connections bound to the implementation's scope:
 
 - An implementation on a **component** reads connections bound to that component.
 - An implementation on a **system** reads connections bound to the system **and** to each of its components.
@@ -59,7 +59,7 @@ Bind a connection when you create it (**Integrations → New connection → Boun
 <!-- figure: test-run -->
 
 1. **Find connections.** As above, per source the test reads.
-2. **Pick a snapshot.** OGRL uses the connection's newest complete snapshot of the source if it is fresh: newer than the test interval's window (one day for `daily`, seven for `weekly`, and so on) and newer than `OGRL_SNAPSHOT_REUSE` (one hour by default). Otherwise it collects one now. For a query source, collecting runs the saved definition.
+2. **Pick a snapshot.** Fathom uses the connection's newest complete snapshot of the source if it is fresh: newer than the test interval's window (one day for `daily`, seven for `weekly`, and so on) and newer than `FATHOM_SNAPSHOT_REUSE` (one hour by default). Otherwise it collects one now. For a query source, collecting runs the saved definition.
 3. **Check it.** An incomplete snapshot (a rate limit partway through, a region the account cannot read) or one whose stored bytes no longer match their digest makes the result `error`. A test never passes on partial data.
 4. **Evaluate.** The rule's `select` chooses items, `assert` must hold for each selected item, and `aggregate` must hold across them ([Writing rules](#writing-rules)).
 5. **Record.** The result gets the outcome, a summary, one subject per failing item, the time the oldest snapshot was observed, and every snapshot used as evidence.
@@ -67,8 +67,8 @@ Bind a connection when you create it (**Integrations → New connection → Boun
 **Run** on a test, or `POST /v1/tests/{id}/runs` with an `implementation_id`, runs it now. The scheduler does the same on its own ([Scheduling](#scheduling)).
 
 ```bash
-curl -X POST "$OGRL_API/v1/tests/test--s3-encrypted/runs" \
-  -H "Authorization: Bearer $OGRL_TOKEN" -H "Content-Type: application/json" \
+curl -X POST "$FATHOM_API/v1/tests/test--s3-encrypted/runs" \
+  -H "Authorization: Bearer $FATHOM_TOKEN" -H "Content-Type: application/json" \
   -d '{"implementation_id": "implementation--cr-01-acme-platform"}'
 # 202 Accepted: a job with "result_id"; then GET /v1/results/{result_id}
 ```
@@ -197,7 +197,7 @@ How `for_each` behaves:
 
 A saved `(integration, name, version)` never changes, because changing a filter changes what earlier evidence meant. To change a query, save it as version 2 and point the test at `…@2`. Version 1 stays usable while tests read it, and cannot be deleted until no unrevoked test does. Every snapshot also records the definition it was collected with, so an auditor sees what was asked and what came back.
 
-Query sources are exported with the organization's Git snapshot as `ogrl-app/queries/<integration>/<name>@<version>.yaml` and restored before the objects that read them.
+Query sources are exported with the organization's Git snapshot as `fathom-app/queries/<integration>/<name>@<version>.yaml` and restored before the objects that read them.
 
 ## Writing and checking a query source
 
@@ -312,7 +312,7 @@ An `integration` runner exists too, for checks that need code, such as merging t
 
 ## Scheduling
 
-With `OGRL_RUN_SCHEDULER=true`, every `OGRL_INTEGRATION_TICK` seconds (default 300) the scheduler starts a run for each pair of test and implementation that is due:
+With `FATHOM_RUN_SCHEDULER=true`, every `FATHOM_INTEGRATION_TICK` seconds (default 300) the scheduler starts a run for each pair of test and implementation that is due:
 
 - the test has a `rule` or `integration` run block and an `interval`;
 - the implementation is of the test's control, not revoked, not a provider's, and within the test's `system_refs` when it lists any;
@@ -327,9 +327,9 @@ A pair with no bound connection is skipped rather than recording errors every ti
 2. **Define the query.** Use the `s3-encryption` definition from [Per-item calls](#per-item-calls): **Define a query** on AWS, or:
 
    ```bash
-   curl -X POST "$OGRL_API/v1/queries/dry-run" -H "Authorization: Bearer $OGRL_TOKEN" \
+   curl -X POST "$FATHOM_API/v1/queries/dry-run" -H "Authorization: Bearer $FATHOM_TOKEN" \
      -H "Content-Type: application/json" -d @s3-encryption.json   # plus "connection_id"
-   curl -X POST "$OGRL_API/v1/queries" -H "Authorization: Bearer $OGRL_TOKEN" \
+   curl -X POST "$FATHOM_API/v1/queries" -H "Authorization: Bearer $FATHOM_TOKEN" \
      -H "Content-Type: application/json" -d @s3-encryption.json
    ```
 

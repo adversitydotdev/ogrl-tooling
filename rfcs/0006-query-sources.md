@@ -69,7 +69,7 @@ The design keeps three properties from RFC 0005:
 | `for_each` | No | Per-item calls: `operation`, `params`, `items`, `bind`, `limit` (below). |
 | `fields` | Yes | Output field name (`[a-z][a-z0-9_]*`) to a dotted path in each item, such as `profile.login`. Must include `id` and `name`, which the rule runner uses to name failing items (RFC 0001 section 7.6). |
 
-**Item schema.** OGRL derives each query source's item schema from the description: the type at each projected path in the operation's response schema, nullable unless every schema level on the path marks it required. That schema validates collected items exactly as a built-in resource's schema does (RFC 0005 section 6), and lists the fields the rule editor shows.
+**Item schema.** Fathom derives each query source's item schema from the description: the type at each projected path in the operation's response schema, nullable unless every schema level on the path marks it required. That schema validates collected items exactly as a built-in resource's schema does (RFC 0005 section 6), and lists the fields the rule editor shows.
 
 **Versions are immutable.** Saving a definition with an existing `(integration, name, version)` and different content is refused. Changing a filter changes what the data means, so every edit is a new version. Older versions stay usable while tests read them, and a version cannot be removed while a non-revoked test reads it.
 
@@ -119,7 +119,7 @@ The SDK provides the executor: given a validated query, it resolves the operatio
 
 ## 5. Read-only enforcement
 
-A query runs only if all of these hold. OGRL checks them when a definition is saved and before every collection; the SDK checks them again in the integration process, so a modified host cannot widen them.
+A query runs only if all of these hold. Fathom checks them when a definition is saved and before every collection; the SDK checks them again in the integration process, so a modified host cannot widen them.
 
 1. The operation exists in the bundled description.
 2. Its method is `GET`, or it is listed in `read_operations`.
@@ -146,11 +146,11 @@ A query source is collected, scheduled, bound, and selected exactly as a built-i
 
 ## 8. Storage, export, and portability
 
-Query definitions are application records (like connections), not RFC 0001 objects, so the language and other OGRL tools are untouched. They are stored with their creator and time, listed through the API, and written by the Git export to `ogrl-app/queries/<integration>/<name>@<version>.yaml` beside the organization's objects; restore reads them back before objects, so restored rule tests find their sources. A rule test that reads a query source is portable to another OGRL deployment that has the same integration and the exported definition.
+Query definitions are application records (like connections), not RFC 0001 objects, so the language and other OGRL tools are untouched. They are stored with their creator and time, listed through the API, and written by the Git export to `fathom-app/queries/<integration>/<name>@<version>.yaml` beside the organization's objects; restore reads them back before objects, so restored rule tests find their sources. A rule test that reads a query source is portable to another OGRL deployment that has the same integration and the exported definition.
 
 ## 9. Drafting with an assistant
 
-The OGRL assistant ([RFC 0003 section 4](0003-application.md#4-agents)) gets tools over the same surface:
+The Fathom assistant ([RFC 0003 section 4](0003-application.md#4-agents)) gets tools over the same surface:
 
 | Tool | Does |
 |---|---|
@@ -181,7 +181,7 @@ Permissions: reading needs `programs:read`; validating, dry runs, and previews n
 | Step | Scope |
 |---|---|
 | 1 | SDK: `openapi` manifest block, description loading, the generic executor with Section 5 checks, protocol `query`. Okta bundles its management API description. |
-| 2 | OGRL: query definitions, derived item schemas, static validation, dry run, collection through `query`, snapshot `query` member, export and restore. |
+| 2 | Fathom: query definitions, derived item schemas, static validation, dry run, collection through `query`, snapshot `query` member, export and restore. |
 | 3 | Web: a query editor (operation search, parameters, field picker from the item schema, dry run) that feeds the rule editor. |
 | 4 | The assistant's tools and drafting flow. |
 

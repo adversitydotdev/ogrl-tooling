@@ -10,7 +10,7 @@
 
 ## Concepts
 
-An **integration** is a process the OGRL host starts once per operation. The host talks to it over stdin and stdout with JSON-RPC 2.0, one message per line ([RFC 0005 section 7](/rfcs/0005-integrations/#7-protocol)). Stdout carries protocol messages only; logs and tracebacks go to stderr.
+An **integration** is a process the Fathom host starts once per operation. The host talks to it over stdin and stdout with JSON-RPC 2.0, one message per line ([RFC 0005 section 7](/rfcs/0005-integrations/#7-protocol)). Stdout carries protocol messages only; logs and tracebacks go to stderr.
 
 An integration provides three kinds of operation:
 

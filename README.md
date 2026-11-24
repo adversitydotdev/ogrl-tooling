@@ -6,7 +6,7 @@ The language itself (RFC 0001 object model, RFC 0002 sources of truth) and the s
 
 ## Documentation
 
-- [Self-hosting the OGRL application](docs/self-hosting.md)
+- [Self-hosting Fathom](docs/self-hosting.md)
 - [The ogrl CLI](docs/cli.md)
 - [Integration SDK](docs/integration-sdk.md)
 - [First-party integrations](docs/integrations.md)

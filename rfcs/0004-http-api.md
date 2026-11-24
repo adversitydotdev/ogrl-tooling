@@ -8,7 +8,7 @@
 | Depends on | [RFC 0001](https://ogrl.adversity.dev/rfcs/0001-object-model/), [RFC 0002](https://ogrl.adversity.dev/rfcs/0002-tooling/), [RFC 0003](0003-application.md) |
 | AI assistance | Drafted and edited with AI tools; human review in progress (see [README](https://github.com/adversitydotdev/ogrl-tooling#ai-assistance)) |
 
-This RFC documents the design rationale, resource conventions, and operational workflows of the HTTP API served by `ogrl`. The formal route and schema contract lives in [api/openapi.yaml](https://github.com/adversitydotdev/ogrl/blob/main/api/openapi.yaml). Open design questions are collected in [Section 7](#7-open-questions).
+This RFC documents the design rationale, resource conventions, and operational workflows of the HTTP API served by `fathom`. The formal route and schema contract lives in [api/openapi.yaml](https://github.com/adversitydotdev/fathom/blob/main/api/openapi.yaml). Open design questions are collected in [Section 7](#7-open-questions).
 
 ## 1. Summary
 
@@ -87,7 +87,7 @@ Two specialized workflows round out the surface:
 
 Commercial GRC suites expose several adjacent domains that RFC 0001 deliberately excludes. Adding API endpoints without backing language objects would fork the data model, so these remain out of scope:
 
-| Commercial feature | Why OGRL omits it |
+| Commercial feature | Why Fathom omits it |
 |---|---|
 | HRIS sync, employee rosters, background checks, per-person training | A `party` represents ownership, and training completion is simply `evidence` on the relevant control; a full HR compliance directory is a separate product. |
 | Device, cloud resource, and repository asset inventories | Asset inventory belongs in a CMDB. Results may cite inline `subjects` without promoting them to managed asset records. |
@@ -113,6 +113,6 @@ All error responses use RFC 9457 Problem Details (`application/problem+json`) wi
 ## 7. Open questions
 
 1. **Authentication:** The API requires a bearer token without yet specifying token issuance or multi-tenant organization selection (deferred with user accounts in RFC 0001 and slated for the next API revision).
-2. **Authorization:** Commercial APIs scope tokens to fine-grained capabilities (such as read-only control listing). Until OGRL defines formal roles—including the dedicated permission for writing executable `test.run` blocks ([RFC 0003 section 5](0003-application.md#5-ports))—a valid token can invoke any route on a single-organization server.
+2. **Authorization:** Commercial APIs scope tokens to fine-grained capabilities (such as read-only control listing). Until Fathom defines formal roles—including the dedicated permission for writing executable `test.run` blocks ([RFC 0003 section 5](0003-application.md#5-ports))—a valid token can invoke any route on a single-organization server.
 3. **Webhooks:** Event notifications (such as alerting Slack or opening a ticket on test failure) are straightforward to model as subscriptions but non-trivial to deliver reliably; they wait until concrete callers need them.
 4. **Partial update semantics:** `PATCH` currently defaults to JSON Merge Patch (RFC 7386), where sent fields merge and arrays replace wholesale (sending `milestones` replaces the entire list). JSON Patch (RFC 6902) offers finer-grained array edits at the cost of a much noisier authoring experience.

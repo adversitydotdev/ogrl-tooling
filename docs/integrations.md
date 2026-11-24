@@ -5,7 +5,7 @@
 | Repositories | [ogrl-okta](https://github.com/adversitydotdev/ogrl-okta), [ogrl-github](https://github.com/adversitydotdev/ogrl-github), [ogrl-aws](https://github.com/adversitydotdev/ogrl-aws) |
 | Built with | [Integration SDK](/docs/integration-sdk/) |
 
-adversity.dev publishes three integrations for the OGRL application: Okta (`dev.adversity.okta`), GitHub (`dev.adversity.github`), and AWS (`dev.adversity.aws`). Each is a Python package built on the Integration SDK that connects read-only to one vendor account, collects resources into evidence snapshots, and ships test templates that score those snapshots against OGRL controls. Okta and AWS also support query sources, so an organization can collect further vendor data without code. This page lists what each package connects to, the vendor-side setup its credentials need, the resources and templates it provides, and its current version.
+adversity.dev publishes three integrations for Fathom: Okta (`dev.adversity.okta`), GitHub (`dev.adversity.github`), and AWS (`dev.adversity.aws`). Each is a Python package built on the Integration SDK that connects read-only to one vendor account, collects resources into evidence snapshots, and ships test templates that score those snapshots against OGRL controls. Okta and AWS also support query sources, so an organization can collect further vendor data without code. This page lists what each package connects to, the vendor-side setup its credentials need, the resources and templates it provides, and its current version.
 
 ## How integrations plug in
 
@@ -24,8 +24,8 @@ Integrations follow [RFC 0005](/rfcs/0005-integrations/). A package is a gzipped
 Each tagged release on GitHub carries the archive and its SHA-256 (`SHA256SUMS`). Install it through the API with the archive URL and digest; the install runs as a job ([section 4](/rfcs/0005-integrations/#4-installing-and-trust)).
 
 ```bash
-curl -X POST "$OGRL_API/v1/integrations" \
-  -H "Authorization: Bearer $OGRL_TOKEN" \
+curl -X POST "$FATHOM_API/v1/integrations" \
+  -H "Authorization: Bearer $FATHOM_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://github.com/adversitydotdev/ogrl-okta/releases/download/v0.1.4/dev.adversity.okta-0.1.4.tar.gz",
@@ -34,10 +34,10 @@ curl -X POST "$OGRL_API/v1/integrations" \
   }'
 ```
 
-Releases are unsigned until Sigstore verification ships with the registry, so every archive installs in the `local` trust tier and the server must run with `OGRL_ALLOW_LOCAL_INTEGRATIONS=true`.
+Releases are unsigned until Sigstore verification ships with the registry, so every archive installs in the `local` trust tier and the server must run with `FATHOM_ALLOW_LOCAL_INTEGRATIONS=true`.
 
-- **Compose stack.** `compose.yaml` in the OGRL repository sets `OGRL_ALLOW_LOCAL_INTEGRATIONS=true`, and its seeder installs and enables the Okta 0.1.4, AWS 0.3.0, and GitHub 0.1.2 releases, pinned to their published digests. Set `OGRL_SEED_INTEGRATIONS=false` on the seeder to skip this.
-- **Directory packages.** `OGRL_INTEGRATIONS_DIR` points at a directory of unpacked packages, such as a checkout of one of these repositories. These are also local-tier packages and load only with `OGRL_ALLOW_LOCAL_INTEGRATIONS=true`; otherwise the server logs a warning and ignores the directory.
+- **Compose stack.** `compose.yaml` in the Fathom repository sets `FATHOM_ALLOW_LOCAL_INTEGRATIONS=true`, and its seeder installs and enables the Okta 0.1.4, AWS 0.3.0, and GitHub 0.1.2 releases, pinned to their published digests. Set `FATHOM_SEED_INTEGRATIONS=false` on the seeder to skip this.
+- **Directory packages.** `FATHOM_INTEGRATIONS_DIR` points at a directory of unpacked packages, such as a checkout of one of these repositories. These are also local-tier packages and load only with `FATHOM_ALLOW_LOCAL_INTEGRATIONS=true`; otherwise the server logs a warning and ignores the directory.
 
 Only one version of an integration is enabled at a time. See [Self-hosting](/docs/self-hosting/) for the rest of the server configuration.
 
@@ -48,13 +48,13 @@ A connection links an installed integration to one vendor account ([section 5](/
 1. `POST /v1/connections` with `integration_id`, `name`, `config`, `auth_kind`, and `bindings`.
 2. Provide credentials:
    - `fields`: `PUT /v1/connections/{id}/secrets/{NAME}` with `{"value": "..."}` for each field. The endpoint is write-only, and values are never returned.
-   - `oauth2`: register your own OAuth application with the vendor, using the callback `${OGRL_PUBLIC_URL}/v1/oauth/callback`. Store its credentials as the secrets `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET`, then `POST /v1/connections/{id}/oauth/start`. OAuth requires `OGRL_PUBLIC_URL`.
+   - `oauth2`: register your own OAuth application with the vendor, using the callback `${FATHOM_PUBLIC_URL}/v1/oauth/callback`. Store its credentials as the secrets `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET`, then `POST /v1/connections/{id}/oauth/start`. OAuth requires `FATHOM_PUBLIC_URL`.
    - `aws_role`: set `config.aws_role_arn`. The connection returns an `external_id` that the role's trust policy must require.
-3. `POST /v1/connections/{id}/validate` makes the cheapest authenticated call and records the vendor identity, such as `acme.okta.com as svc-ogrl`.
+3. `POST /v1/connections/{id}/validate` makes the cheapest authenticated call and records the vendor identity, such as `acme.okta.com as svc-fathom`.
 
 ### Collect snapshots
 
-The scheduler collects each resource that an enabled test reads, for every bound connection, whenever the newest snapshot is older than `OGRL_SNAPSHOT_REUSE` (default 3600 seconds). `POST /v1/connections/{id}/collections` starts a collection by hand. The harness validates every item against the resource's JSON Schema, drops undeclared properties, and stores the result as an RFC 0001 snapshot ([section 6](/rfcs/0005-integrations/#6-collection)). A collection that stops early, for example on a rate limit partway through, is stored with `complete: false`, and no test evaluates it.
+The scheduler collects each resource that an enabled test reads, for every bound connection, whenever the newest snapshot is older than `FATHOM_SNAPSHOT_REUSE` (default 3600 seconds). `POST /v1/connections/{id}/collections` starts a collection by hand. The harness validates every item against the resource's JSON Schema, drops undeclared properties, and stores the result as an RFC 0001 snapshot ([section 6](/rfcs/0005-integrations/#6-collection)). A collection that stops early, for example on a rate limit partway through, is stored with `complete: false`, and no test evaluates it.
 
 ### Checks and templates
 
@@ -87,7 +87,7 @@ The connection supports two auth kinds.
 
 **`fields`: API token.** One secret, `OKTA_API_TOKEN`, described in the manifest as an "API token of a read-only admin". It is sent as `Authorization: SSWS <token>`. When both auth kinds are configured, the token takes precedence.
 
-**`oauth2`: OAuth for Okta (API Services or Web app).** Register an app in your Okta org with redirect URI `${OGRL_PUBLIC_URL}/v1/oauth/callback`, and grant it these scopes:
+**`oauth2`: OAuth for Okta (API Services or Web app).** Register an app in your Okta org with redirect URI `${FATHOM_PUBLIC_URL}/v1/oauth/callback`, and grant it these scopes:
 
 ```text
 okta.users.read
@@ -180,9 +180,9 @@ Collects repositories, the effective rules on each default branch (classic branc
 
 If Administration is missing, collection fails with `permission_denied` naming `administration:read`.
 
-**`oauth2`: GitHub App (user-to-server, expiring tokens).** Create a GitHub App owned by the organization, set its callback URL to `${OGRL_PUBLIC_URL}/v1/oauth/callback`, and give it the same three read permissions. The manifest requests no OAuth scopes (`scopes: []`), because GitHub App access comes from the app's permissions. Authorization uses `https://github.com/login/oauth/authorize` and `/login/oauth/access_token` with PKCE.
+**`oauth2`: GitHub App (user-to-server, expiring tokens).** Create a GitHub App owned by the organization, set its callback URL to `${FATHOM_PUBLIC_URL}/v1/oauth/callback`, and give it the same three read permissions. The manifest requests no OAuth scopes (`scopes: []`), because GitHub App access comes from the app's permissions. Authorization uses `https://github.com/login/oauth/authorize` and `/login/oauth/access_token` with PKCE.
 
-Validation calls `GET /user` and `GET /orgs/{organization}`, and reports `<organization> as <login>`. When the token's `X-OAuth-Scopes` include `repo`, `admin:org`, or `write:org`, validation warns that the token has write scopes and OGRL needs only read access.
+Validation calls `GET /user` and `GET /orgs/{organization}`, and reports `<organization> as <login>`. When the token's `X-OAuth-Scopes` include `repo`, `admin:org`, or `write:org`, validation warns that the token has write scopes and Fathom needs only read access.
 
 ### Resources
 
@@ -220,11 +220,11 @@ Collects IAM users and their credentials from the IAM credential report, and Clo
 
 ### Connection and vendor setup
 
-**`aws_role`: read-only IAM role (SecurityAudit, plus `iam:GenerateCredentialReport`).** The application calls `sts:AssumeRole` on `aws_role_arn` before each operation. It uses the connection's `external_id`, a one-hour session, and a session name of the form `ogrl-<connection>`. The integration receives only the resulting short-lived keys.
+**`aws_role`: read-only IAM role (SecurityAudit, plus `iam:GenerateCredentialReport`).** The application calls `sts:AssumeRole` on `aws_role_arn` before each operation. It uses the connection's `external_id`, a one-hour session, and a session name of the form `fathom-<connection>`. The integration receives only the resulting short-lived keys.
 
 In the target account, create a role that:
 
-1. Trusts the identity OGRL runs as and requires the connection's external ID. In the CloudFormation deployment, that identity is the task role. In the compose stack, it is whatever identity the `AWS_*` variables held when compose started.
+1. Trusts the identity Fathom runs as and requires the connection's external ID. In the CloudFormation deployment, that identity is the task role. In the compose stack, it is whatever identity the `AWS_*` variables held when compose started.
 2. Has the AWS-managed `SecurityAudit` policy and permission for `iam:GenerateCredentialReport`.
 3. Is tagged `ogrl-integration=true`. The CloudFormation task role may assume only roles with this tag.
 
@@ -233,7 +233,7 @@ In the target account, create a role that:
   "Version": "2012-10-17",
   "Statement": [{
     "Effect": "Allow",
-    "Principal": {"AWS": "arn:aws:iam::<ogrl-account-id>:role/<ogrl-task-role>"},
+    "Principal": {"AWS": "arn:aws:iam::<fathom-account-id>:role/<fathom-task-role>"},
     "Action": "sts:AssumeRole",
     "Condition": {"StringEquals": {"sts:ExternalId": "<connection external_id>"}}
   }]

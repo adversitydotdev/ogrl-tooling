@@ -65,7 +65,7 @@ AWS models rarely carry Smithy's `@readonly` trait: none of IAM's 181 operations
 2. For REST protocols (`restJson1`, `restXml`), its `@http` method is `GET`.
 3. It is not in `deny_operations`. Integration authors list every read that returns content or secrets; first-party review checks the list per release.
 
-The connection's IAM role is the backstop: the recommended AWS-managed `SecurityAudit` policy grants configuration reads and none of the content reads above. OGRL checks these rules when a definition is saved and before every collection; the SDK checks them again in the integration process.
+The connection's IAM role is the backstop: the recommended AWS-managed `SecurityAudit` policy grants configuration reads and none of the content reads above. Fathom checks these rules when a definition is saved and before every collection; the SDK checks them again in the integration process.
 
 ## 4. Operations, parameters, and fields
 
@@ -141,7 +141,7 @@ RFC 0006's routes serve Smithy-backed integrations without change. `GET /integra
 |---|---|
 | 1 | SDK: Smithy model loading and trimming, Section 3 classification, shape-driven validation and item schemas, SigV4, and the JSON and query protocols (`awsJson1_0`, `awsJson1_1`, `restJson1`, `awsQuery`, `ec2Query`) with pagination and regions. |
 | 2 | `ogrl-aws` bundles IAM, EC2, RDS, KMS, CloudTrail, and GuardDuty, and drops its hand-written SigV4 for the SDK's. |
-| 3 | OGRL: the shared API-model interface over OpenAPI and Smithy; `regions` on definitions. |
+| 3 | Fathom: the shared API-model interface over OpenAPI and Smithy; `regions` on definitions. |
 | 4 | `restXml` and S3; `for_each` per-item calls. |
 
 ## 10. Open questions
