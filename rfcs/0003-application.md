@@ -12,7 +12,7 @@
 
 ## 1. Summary
 
-At the center of Fathom sits a single pure-Python **kernel** built on Pydantic models of the RFC 0001 schema. The CLI, the FastAPI server, and AI agents all invoke that same kernel so no two entry points can disagree on validation, parameter resolution, or computed status. The web frontend is a Next.js application that communicates strictly over HTTP and renders status computed by the API.
+At the center of Fathom sits a single pure-Python **kernel** built on Pydantic models of the RFC 0001 schema. The FastAPI server, the job worker, and AI agents all invoke that same kernel so no two entry points can disagree on validation, parameter resolution, or computed status. The web frontend is a Next.js application that communicates strictly over HTTP and renders status computed by the API.
 
 In production, the entire stack is designed to self-host inside the organization's own AWS account as a single small ARM Fargate task backed by a single `db.t4g.micro` Postgres instance—provisioned directly from the Fathom repository's CloudFormation template. Because a small team's compliance platform spends most of its life idle, minimizing the **idle monthly bill** is a first-order architectural constraint: the default topology deliberately avoids NAT gateways, load balancers, RDS Proxy, and databases with high minimum floors.
 
@@ -24,11 +24,11 @@ Extensibility works through four typed ports (importers, renderers, runners, and
 
 | Process | Stack | Responsibility |
 |---|---|---|
-| `ogrl` (library CLI) | Python | Builds and validates the shared library in the OGRL repository via the kernel; requires no server or organization database. |
+| `ogrl` (library CLI) | Rust ([`ogrl-rs`](https://github.com/adversitydotdev/ogrl-rs)) | Lints, formats, imports, and bundles the shared library in `adversitydotdev/ogrl-library`; requires no server or organization database. |
 | `fathom` (server) | Python | Runs the FastAPI HTTP server, background job runner, scheduler, and agents in a single process—the sole writer to the organization's Postgres database. |
 | Web frontend | TypeScript, Next.js | User interface; reads and writes exclusively through the HTTP API. |
 
-Self-hosting requires only the `fathom` server process and the web frontend. Because the CLI and API import the exact same kernel package, they share identical bundle semantics. Future CLI commands that operate on an organization's live program will call the HTTP API rather than connecting to Postgres directly, keeping all RFC 0002 invariants enforced behind a single writer.
+Self-hosting requires only the `fathom` server process and the web frontend. The `ogrl` CLI and the server's kernel share the same Rust core (`ogrl_rs`), so they share identical bundle semantics. Future CLI commands that operate on an organization's live program will call the HTTP API rather than connecting to Postgres directly, keeping all RFC 0002 invariants enforced behind a single writer.
 
 **Background jobs and scheduling.** Long-running operations defined in [RFC 0004](0004-http-api.md)—library pulls, provider imports, test runs, renders, Git exports, restores, and connector collections—are persisted as job rows and return `202 Accepted` immediately so HTTP requests never block on subprocess execution.
 
@@ -180,7 +180,7 @@ fathom/
   persistence/   # SQLModel rows, Postgres repositories, Alembic migrations
   telemetry.py   # Sole module importing logfire
   api/           # FastAPI application and in-process job runner
-  cli/           # fathom CLI
+  main.py        # `fathom` entry point: API server or job worker
 web/             # Next.js frontend
 deploy/aws/      # CloudFormation template for production AWS deployment
 ```
