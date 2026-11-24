@@ -4,15 +4,24 @@
 |---|---|
 | Status | Draft |
 | Spec version | 0.1.0 |
-| Date | 2026-11-09 |
-| Depends on | [RFC 0001](https://ogrl.adversity.dev/rfcs/0001-object-model/), [RFC 0002](https://ogrl.adversity.dev/rfcs/0002-tooling/) |
+| Date | 2026-11-21 |
+| Depends on | [RFC 0001](https://ogrl.adversity.dev/rfcs/0001-object-model/) 0.2.0, [RFC 0002](https://ogrl.adversity.dev/rfcs/0002-tooling/) |
 | AI assistance | Drafted and edited with AI tools; human review in progress (see [README](https://github.com/adversitydotdev/ogrl-tooling#ai-assistance)) |
 
-[RFC 0001](https://ogrl.adversity.dev/rfcs/0001-object-model/) defines the OGRL language and [RFC 0002](https://ogrl.adversity.dev/rfcs/0002-tooling/) establishes where each copy of an object is authoritative (both published on the [specification site](https://ogrl.adversity.dev/)). This RFC specifies the runtime architecture of the self-hosted OGRL application: its process boundaries, pure Python kernel, agent guardrails, plugin ports, persistence layer, web frontend, observability, and cost-conscious production AWS deployment. Open questions are collected in [Section 12](#12-open-questions).
+## Changelog
+
+### 0.1.0 (2026-11-21)
+
+- Published on tools.adversity.dev with the other tooling RFCs (moved from `adversitydotdev/ogrl`).
+- Pointed the Runner and Connector ports at RFC 0005; integrations use the JSON-RPC protocol instead of the generic subprocess sketch.
+- Renamed OpenGRC to OGRL and wired heavy parsing to the `ogrl-rs` PyO3 wheel.
+- Initial public draft of self-hosted application architecture: kernel, agents, ports, persistence, web frontend, observability, and AWS production topology.
+
+[RFC 0001](https://ogrl.adversity.dev/rfcs/0001-object-model/) (spec version 0.2.0) defines the OGRL language and [RFC 0002](https://ogrl.adversity.dev/rfcs/0002-tooling/) establishes where each copy of an object is authoritative (both published on the [specification site](https://ogrl.adversity.dev/)). This RFC specifies the runtime architecture of the self-hosted OGRL application: its process boundaries, pure Python kernel, agent guardrails, plugin ports, persistence layer, web frontend, observability, and cost-conscious production AWS deployment. Open questions are collected in [Section 12](#12-open-questions).
 
 ## 1. Summary
 
-At the center of Fathom sits a single pure-Python **kernel** built on Pydantic models of the RFC 0001 schema. The FastAPI server, the job worker, and AI agents all invoke that same kernel so no two entry points can disagree on validation, parameter resolution, or computed status. The web frontend is a Next.js application that communicates strictly over HTTP and renders status computed by the API.
+At the center of Fathom sits a single pure-Python **kernel** built on Pydantic models of the RFC 0001 (0.2.0) schema. The FastAPI server, the job worker, and AI agents all invoke that same kernel so no two entry points can disagree on validation, parameter resolution, or computed status. The web frontend is a Next.js application that communicates strictly over HTTP and renders status computed by the API.
 
 In production, the entire stack is designed to self-host inside the organization's own AWS account as a single small ARM Fargate task backed by a single `db.t4g.micro` Postgres instance—provisioned directly from the Fathom repository's CloudFormation template. Because a small team's compliance platform spends most of its life idle, minimizing the **idle monthly bill** is a first-order architectural constraint: the default topology deliberately avoids NAT gateways, load balancers, RDS Proxy, and databases with high minimum floors.
 
