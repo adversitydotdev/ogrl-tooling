@@ -11,6 +11,8 @@ adversity.dev publishes three integrations for Fathom: Okta (`dev.adversity.okta
 
 For how connections, query sources, and tests fit together, with diagrams and worked examples, see [Live evidence](/docs/live-evidence/).
 
+<!-- screenshot: integrations | Integrations view showing connected AWS, GitHub, and Okta accounts, vendor validation status, installed package versions, and template updates. -->
+
 Integrations follow [RFC 0005](/rfcs/0005-integrations/). A package is a gzipped tar archive holding `manifest.yaml`, one JSON Schema per resource, and the code ([section 3](/rfcs/0005-integrations/#3-integration-packages)). The application runs each operation (`connection.validate`, `collect`, `check`) in a separate process and talks to it over JSON-RPC on stdin and stdout.
 
 | Integration | ID | Version | Auth kinds | Resources | Query sources |

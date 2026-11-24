@@ -8,6 +8,8 @@
 
 Operator guide for the self-hosted Fathom application: one Python `fathom` server process (HTTP API, job worker, scheduler, agents) that is the sole writer to a PostgreSQL organization database, a Next.js web UI that talks to it only over HTTP, and S3-compatible object storage for evidence, document bodies, and rendered files. It covers the local Docker Compose stack, every environment variable the server reads, AI model settings, integrations, the library source, the AWS CloudFormation deployment with its cost figures, observability, and git snapshot export and restore.
 
+<!-- screenshot: overview | Fathom program overview: control readiness, requirement coverage, open gaps, expiring evidence, and recent jobs. -->
+
 ## What runs
 
 The application is specified in [RFC 0003](/rfcs/0003-application/). The HTTP contract is [RFC 0004](/rfcs/0004-http-api/).
@@ -20,6 +22,20 @@ The application is specified in [RFC 0003](/rfcs/0003-application/). The HTTP co
 | Object storage | S3 on AWS, SeaweedFS S3 locally. Evidence blobs, policy and procedure bodies, rendered packages, and installed integration archives. Postgres stores only `resource.uri` and `resource.digest`. |
 
 The image is built from the repository [Dockerfile](https://github.com/adversitydotdev/fathom/blob/main/Dockerfile): Python 3.13, the prebuilt `ogrl-rs` wheel (no Rust compiler needed), runs as user `fathom`, exposes `8080`, defaults `FATHOM_BIND=0.0.0.0:8080`, and health-checks `GET /health`. The web image builds from `web/Dockerfile`.
+
+## Web UI tour
+
+The web UI renders what the API returns and never computes control status on its own. Opening a control from the list displays its required tests, evidence freshness dates, and parameterized statement in a slide-over panel without leaving the table.
+
+<!-- screenshot: controls-panel | Controls list with the slide-over detail panel showing required tests, evidence validity dates, and control parameters. -->
+
+Framework requirements reflect the exact mapping rules from the library: partial mappings report `contribution` rather than claiming full coverage, and unmapped requirements stay visible.
+
+<!-- screenshot: requirements | NIST SP 800-171 Revision 3 requirement coverage across covered, gap, contribution, and unmapped states. -->
+
+Policies and procedures are authored in a rich-text editor backed by plain Markdown, storing the text and recording a SHA-256 digest on adoption.
+
+<!-- screenshot: policy-editor | Rich-text policy editor backed by Markdown, linked controls, and SHA-256 adoption digests. -->
 
 ## Local quick start
 
@@ -145,6 +161,8 @@ Agents are optional. With no model configured they are omitted and the rest of t
 | `FATHOM_AI_ACTOR_ID` | Party ID stamped onto agent drafts. Default `party--ogrl-agent`. |
 
 On AWS, the stack's `ConfigurationPrefix` output names `model/api-key` under the SSM prefix as the place for a model key. The template's task definitions do not set any of the variables above.
+
+<!-- screenshot: assistant | AI assistant drawer querying computed kernel status to summarize open control gaps behind human review gates. -->
 
 ## Integrations
 

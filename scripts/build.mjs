@@ -16,6 +16,7 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const SRC_DIR = path.join(ROOT, "src");
+const SCREENSHOTS_DIR = path.join(SRC_DIR, "screenshots");
 const DIST_DIR = path.join(ROOT, "dist");
 // Sibling checkout of the language spec, used to validate links into ogrl.adversity.dev.
 const SPEC_RFCS_DIR = path.resolve(ROOT, "..", "ogrl-rfcs", "rfcs");
@@ -232,9 +233,27 @@ function loadCollection(kind, outboundLinks, headingIds) {
     });
 
     // `<!-- figure: <id> -->` places an inline SVG figure from src/diagrams.mjs.
+    // `<!-- screenshot: <slug> | <caption> -->` places a theme-aware Fathom UI screenshot.
     const html = marked
       .parse(bodyMarkdown)
-      .replace(/<!--\s*figure:\s*([a-z0-9-]+)\s*-->/g, (_, id) => renderFigure(id));
+      .replace(/<!--\s*figure:\s*([a-z0-9-]+)\s*-->/g, (_, id) => renderFigure(id))
+      .replace(/<!--\s*screenshot:\s*([a-z0-9-]+)(?:\s*\|\s*([^>]+?))?\s*-->/g, (_, slug, caption) => {
+        const lightFile = `${slug}-light.png`;
+        const darkFile = `${slug}-dark.png`;
+        for (const f of [lightFile, darkFile]) {
+          if (!fs.existsSync(path.join(SCREENSHOTS_DIR, f))) {
+            throw new Error(`Missing screenshot asset src/screenshots/${f} referenced in ${key}`);
+          }
+        }
+        const alt = escHtml((caption || slug).trim());
+        const capHtml = caption ? `\n  <figcaption>${escHtml(caption.trim())}</figcaption>` : "";
+        return `<figure class="screenshot-figure">
+  <div class="screenshot-frame">
+    <img class="shot-light" src="/assets/screenshots/${lightFile}" alt="${alt}" loading="lazy" decoding="async" />
+    <img class="shot-dark" src="/assets/screenshots/${darkFile}" alt="${alt}" loading="lazy" decoding="async" />
+  </div>${capHtml}
+</figure>`;
+      });
     headingIds.set(key, seenIds);
 
     items.push({
@@ -334,6 +353,15 @@ export function build() {
   fs.copyFileSync(path.join(SRC_DIR, "styles.css"), path.join(DIST_DIR, "assets", "styles.css"));
   fs.copyFileSync(path.join(SRC_DIR, "client.js"), path.join(DIST_DIR, "assets", "client.js"));
   fs.copyFileSync(path.join(SRC_DIR, "favicon.svg"), path.join(DIST_DIR, "favicon.svg"));
+  if (fs.existsSync(SCREENSHOTS_DIR)) {
+    const outShots = path.join(DIST_DIR, "assets", "screenshots");
+    fs.mkdirSync(outShots, { recursive: true });
+    for (const file of fs.readdirSync(SCREENSHOTS_DIR)) {
+      if (/\.(png|webp|jpg|svg)$/i.test(file)) {
+        fs.copyFileSync(path.join(SCREENSHOTS_DIR, file), path.join(outShots, file));
+      }
+    }
+  }
 
   const write = (rel, html) => fs.writeFileSync(path.join(DIST_DIR, rel), html, "utf-8");
   write("index.html", renderIndexPage({ docs, rfcs }));

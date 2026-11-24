@@ -230,6 +230,8 @@ Typical feedback:
 
 On **Integrations**, every integration with an API model has **Query sources** and **Define a query**:
 
+<!-- screenshot: query-source | Defining an AWS Smithy query source (ec2.DescribeSecurityGroups) with schema validation and a live dry-run sample table. -->
+
 1. **Operation.** Search, then **Use** an operation. AWS operations show their protocol and whether they are regional.
 2. **Name, version, parameters.** One input per parameter; AWS list and structure parameters take JSON. **Regions** appears for regional AWS operations, defaulting to `*`.
 3. **For each listed item** (optional). Search the list operation, set its parameters and where its list is, and fill **Each listed item fills** with the parameter and the path it comes from.
@@ -253,6 +255,8 @@ The assistant has the same steps as tools: `list_integrations`, `search_operatio
 ## Writing rules
 
 A rule test's `run` block names one source and up to four CEL expressions ([RFC 0001 §7.6](https://ogrl.adversity.dev/rfcs/0001-object-model/)):
+
+<!-- screenshot: rule-editor | Writing a CEL rule test with clickable schema fields and live preview against the latest Okta snapshot. -->
 
 | Field | Evaluated | Must give |
 |---|---|---|
