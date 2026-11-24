@@ -19,6 +19,38 @@
     });
   }
 
+  // GitHub star count: paint last-known value instantly, then refresh on every load.
+  // GitHub sends max-age=60, so the browser HTTP cache keeps us well under the 60 req/h anon limit.
+  const ghBtn = document.querySelector("[data-gh-repo]");
+  if (ghBtn) {
+    const repo = ghBtn.dataset.ghRepo;
+    const starsEl = ghBtn.querySelector(".gh-stars");
+    const countEl = ghBtn.querySelector(".gh-star-count");
+    const cacheKey = `ogrl-tools-gh-stars:${repo}`;
+    const fmt = (n) =>
+      n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "")}k` : String(n);
+    const show = (n) => {
+      countEl.textContent = fmt(n);
+      starsEl.hidden = false;
+      ghBtn.setAttribute("aria-label", `ogrl-tooling on GitHub, ${n} stars`);
+    };
+    let cached = null;
+    try {
+      cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+    } catch (e) {}
+    if (cached && typeof cached.n === "number") show(cached.n);
+    fetch(`https://api.github.com/repos/${repo}`, { headers: { Accept: "application/vnd.github+json" } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d || typeof d.stargazers_count !== "number") return;
+        show(d.stargazers_count);
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify({ n: d.stargazers_count, t: Date.now() }));
+        } catch (e) {}
+      })
+      .catch(() => {});
+  }
+
   // Copy buttons on code blocks
   document.querySelectorAll(".copy-btn").forEach((btn) => {
     btn.addEventListener("click", async () => {

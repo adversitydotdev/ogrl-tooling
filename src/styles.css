@@ -245,6 +245,24 @@ a:hover {
   justify-content: center;
 }
 
+.gh-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-left: 0.4rem;
+  border-left: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+
+.gh-stars[hidden] {
+  display: none;
+}
+
+.icon-btn .gh-stars svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
 /* Dotted Hero Band */
 .hero-band {
   border-bottom: 1px solid var(--border);
